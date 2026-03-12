@@ -1,0 +1,39 @@
+{
+  "name": "park-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"npx tsx server/index.ts\"",
+    "dev:frontend": "vite",
+    "dev:server": "npx tsx server/index.ts",
+    "build": "tsc -b && vite build",
+    "build:gh": "vite build --base /park_agent/",
+    "preview": "vite preview",
+    "deploy": "npm run build:gh && gh-pages -d dist -t true"
+  },
+  "homepage": "https://apptalenthub.github.io/park_agent/",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.2.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10"
+  }
+}
