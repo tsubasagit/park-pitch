@@ -1,11 +1,19 @@
 import { useState, useCallback } from 'react'
 import Header from '../components/Header'
 import Sidebar from '../components/Sidebar'
-import ChatArea, { type ChatMessage } from '../components/ChatArea'
+import ChatArea, { type ChatMessage, type ChatMessageAttachment } from '../components/ChatArea'
 import { sendChatMessage } from '../api/chat'
 
 function generateId() {
   return Math.random().toString(36).slice(2, 11)
+}
+
+function filesToAttachments(files: File[]): ChatMessageAttachment[] {
+  return files.map((f) => ({
+    name: f.name,
+    isImage: f.type.startsWith('image/'),
+    url: f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined,
+  }))
 }
 
 export default function AgentChat() {
@@ -14,12 +22,17 @@ export default function AgentChat() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [presetInput, setPresetInput] = useState<string | undefined>(undefined)
 
-  const handleSend = useCallback(async (text: string) => {
-    const userMsg: ChatMessage = { id: generateId(), role: 'user', content: text }
+  const handleSend = useCallback(async (text: string, files?: File[]) => {
+    const userMsg: ChatMessage = {
+      id: generateId(),
+      role: 'user',
+      content: text,
+      attachments: files?.length ? filesToAttachments(files) : undefined,
+    }
     setMessages((prev) => [...prev, userMsg])
     setIsLoading(true)
     try {
-      const reply = await sendChatMessage(text)
+      const reply = await sendChatMessage(text, files)
       const assistantMsg: ChatMessage = { id: generateId(), role: 'assistant', content: reply }
       setMessages((prev) => [...prev, assistantMsg])
     } catch (err) {

@@ -10,12 +10,13 @@
     "build": "tsc -b && vite build",
     "build:gh": "vite build --base /park_agent/",
     "preview": "vite preview",
-    "deploy": "npm run build:gh && gh-pages -d dist -t true"
+    "deploy": "npm run build:gh && gh-pages -d dist"
   },
-  "homepage": "https://apptalenthub.github.io/park_agent/",
+  "homepage": "https://tsubasagit.github.io/park_agent/",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "react": "^18.3.1",
@@ -25,6 +26,7 @@
     "gh-pages": "^6.2.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",

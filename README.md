@@ -37,6 +37,6 @@ npm run deploy
 ```
 
 1. GitHub でリポジトリ `park_agent` を新規作成（空のまま）
-2. ローカルで `git remote add origin https://github.com/<ユーザー名>/park_agent.git` を実行済みの状態で `npm run deploy` を実行すると、`gh-pages` ブランチにビルド成果物が push され、GitHub の Settings → Pages で「gh-pages ブランチ」を選ぶと `https://<ユーザー名>.github.io/park_agent/` で公開されます。
+2. `npm run deploy` で `gh-pages` ブランチにビルドを push。GitHub の **Settings → Pages** で「Deploy from a branch」を選び、Branch に `gh-pages` / フォルダに `/ (root)` を指定すると `https://tsubasagit.github.io/park_agent/` で公開されます。
 
 リポジトリ名を変えた場合は `package.json` の `build:gh` の `--base /park_agent/` を `/あなたのリポジトリ名/` に合わせて変更してください。

@@ -2,15 +2,17 @@ const API_BASE = '/api'
 
 export async function sendChatMessage(
   userMessage: string,
-  contextSummary?: string,
+  files?: File[],
 ): Promise<string> {
+  const form = new FormData()
+  form.append('message', userMessage)
+  if (files?.length) {
+    files.forEach((f) => form.append('files', f))
+  }
+
   const res = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: userMessage,
-      contextSummary,
-    }),
+    body: form,
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))

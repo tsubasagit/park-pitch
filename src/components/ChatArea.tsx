@@ -1,9 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 
+export interface ChatMessageAttachment {
+  name: string
+  isImage: boolean
+  url?: string
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+  attachments?: ChatMessageAttachment[]
 }
 
 const SUGGEST_CHIPS = [
@@ -13,12 +20,13 @@ const SUGGEST_CHIPS = [
   { label: 'アイデアが欲しい', prompt: '次のアクションのアイデアを出して' },
 ]
 
+const ACCEPT_FILES = 'image/*,.pdf,.doc,.docx,.txt'
+
 interface ChatAreaProps {
   messages: ChatMessage[]
-  onSend: (text: string) => void
+  onSend: (text: string, files?: File[]) => void
   isLoading: boolean
   inputPlaceholder?: string
-  /** 親から入力欄にセットするテキスト（サイドでお気に入りクリック時） */
   presetInput?: string
   onPresetConsumed?: () => void
 }
@@ -32,6 +40,8 @@ export default function ChatArea({
   onPresetConsumed,
 }: ChatAreaProps) {
   const [input, setInput] = useState('')
+  const [attachments, setAttachments] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -45,12 +55,24 @@ export default function ChatArea({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files?.length) return
+    setAttachments((prev) => [...prev, ...Array.from(files)].slice(0, 5))
+    e.target.value = ''
+  }
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
-    if (!text || isLoading) return
-    onSend(text)
+    if ((!text && attachments.length === 0) || isLoading) return
+    onSend(text || '（ファイルのみ送信）', attachments.length > 0 ? attachments : undefined)
     setInput('')
+    setAttachments([])
   }
 
   const handleChipClick = (prompt: string) => {
@@ -90,6 +112,24 @@ export default function ChatArea({
             >
               <span className="font-medium mr-2">{m.role === 'user' ? '👤' : '🤖'}</span>
               <span className="whitespace-pre-wrap">{m.content}</span>
+              {m.attachments && m.attachments.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {m.attachments.map((a, i) =>
+                    a.isImage && a.url ? (
+                      <img
+                        key={i}
+                        src={a.url}
+                        alt={a.name}
+                        className="max-h-24 rounded border border-white/20"
+                      />
+                    ) : (
+                      <span key={i} className="text-xs opacity-90">
+                        📎 {a.name}
+                      </span>
+                    ),
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -121,23 +161,71 @@ export default function ChatArea({
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={inputPlaceholder}
-          disabled={isLoading}
-          className="flex-1 min-w-0 px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-park-orange focus:border-transparent"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || isLoading}
-          className="shrink-0 w-10 h-10 rounded-lg bg-park-orange text-white flex items-center justify-center hover:bg-park-orangeHover disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="送信"
-        >
-          ➤
-        </button>
+      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
+        {attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {attachments.map((f, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs"
+              >
+                {f.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(f)}
+                    alt=""
+                    className="h-10 w-10 object-cover rounded"
+                  />
+                ) : (
+                  <span>📎 {f.name}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(i)}
+                  className="text-gray-500 hover:text-red-600"
+                  aria-label="削除"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPT_FILES}
+            multiple
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            className="shrink-0 w-10 h-10 rounded-lg border border-gray-300 text-gray-600 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
+            title="ファイル・画像を添付"
+            aria-label="添付"
+          >
+            📎
+          </button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={inputPlaceholder}
+            disabled={isLoading}
+            className="flex-1 min-w-0 px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-park-orange focus:border-transparent"
+          />
+          <button
+            type="submit"
+            disabled={(!input.trim() && attachments.length === 0) || isLoading}
+            className="shrink-0 w-10 h-10 rounded-lg bg-park-orange text-white flex items-center justify-center hover:bg-park-orangeHover disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="送信"
+          >
+            ➤
+          </button>
+        </div>
       </form>
     </div>
   )
