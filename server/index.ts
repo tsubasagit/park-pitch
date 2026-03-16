@@ -3,7 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import multer from 'multer'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { MINUTES_CONTEXT } from './minutesMock'
+import { MINUTES_CONTEXT, DEALS_CONTEXT } from './minutesMock'
 
 dotenv.config()
 
@@ -40,13 +40,21 @@ const model = genAI.getGenerativeModel({ model: modelId })
 console.log('[PARK Agent] Gemini model:', modelId)
 
 const SYSTEM_PROMPT = `
-あなたは営業支援AI「PARK」です。以下の議事録・商談メモを参照して、ユーザーの質問に答えてください。
-答えるときは簡潔に、必要なら箇条書きや次のアクションを提案してください。
-議事録にない内容は「議事録には記載がありません」と伝え、推測で書かないでください。
-ユーザーが画像やPDFを添付した場合は、その内容も踏まえて回答してください。
+あなたは営業支援AI「PARK」です。以下の議事録・商談メモおよび案件情報を参照して、ユーザーの質問に答えてください。
+
+## 回答フォーマット
+- **必ずMarkdown形式で回答してください。** 見出し（##, ###）、箇条書き、表、太字を積極的に活用してください。
+- 案件状況を聞かれたら表形式で一覧を示してください。
+- 提案書や文書の生成を依頼されたら、見出し・セクション構成で整形してください。
+- 簡潔に、必要なら次のアクションを提案してください。
+- 議事録にない内容は「議事録には記載がありません」と伝え、推測で書かないでください。
+- ユーザーが画像やPDFを添付した場合は、その内容も踏まえて回答してください。
 
 【参照用議事録】
 ${MINUTES_CONTEXT}
+
+【参照用案件情報】
+${DEALS_CONTEXT}
 `.trim()
 
 function buildGeminiParts(

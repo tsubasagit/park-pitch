@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PARK Agent プロトタイプ UI/UX アンケート</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; max-width: 640px; margin: 0 auto; padding: 1rem; color: #1e293b; }
+    h1 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .intro { font-size: 0.875rem; color: #64748b; margin-bottom: 1.5rem; }
+    section { margin-bottom: 2rem; }
+    section h2 { font-size: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem; margin-bottom: 1rem; }
+    .q { margin-bottom: 1.25rem; }
+    .q label { display: block; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.35rem; }
+    .q ul { list-style: none; padding: 0; margin: 0; }
+    .q li { margin-bottom: 0.35rem; }
+    .q input[type="radio"], .q input[type="checkbox"] { margin-right: 0.5rem; }
+    .q textarea { width: 100%; min-height: 4rem; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; }
+    .scale { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .scale label { margin-right: 0.25rem; font-weight: normal; }
+    .note { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+    button[type="submit"] { background: #1e3a5f; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    button[type="submit"]:hover { background: #2d4a6f; }
+    .form-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b; }
+  </style>
+</head>
+<body>
+  <h1>PARK Agent プロトタイプ UI/UX アンケート</h1>
+  <p class="intro">所要時間の目安: 3〜5分。匿名でお答えいただけます。厳しいご意見も歓迎します。</p>
+
+  <form id="survey" action="#" method="post">
+    <!-- セクション1: 利用状況 -->
+    <section>
+      <h2>1. 利用状況</h2>
+      <div class="q">
+        <label>このプロトタイプを何回程度利用しましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="usage_count" value="1" required /> 1回だけ</label></li>
+          <li><label><input type="radio" name="usage_count" value="2-3" /> 2〜3回</label></li>
+          <li><label><input type="radio" name="usage_count" value="4-10" /> 4〜10回</label></li>
+          <li><label><input type="radio" name="usage_count" value="11+" /> 11回以上</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>主にどのようなシーンで利用しましたか？（複数可）</label>
+        <ul>
+          <li><label><input type="checkbox" name="scene" value="summary" /> 会社・案件のサマリー確認</label></li>
+          <li><label><input type="checkbox" name="scene" value="minutes" /> 議事録の確認</label></li>
+          <li><label><input type="checkbox" name="scene" value="next_action" /> 次のアクションの相談</label></li>
+          <li><label><input type="checkbox" name="scene" value="draft" /> 提案書・メールの下書き</label></li>
+        </ul>
+        <label>その他: <input type="text" name="scene_other" style="width:100%; max-width:320px;" /></label>
+      </div>
+      <div class="q">
+        <label>会社一覧・案件・議事録の「一覧」は Google Drive で管理し、このツールはサマリーをチャットで取り出す用途です。一覧は Drive へのリンクで見る想定です。この役割分担は理解できましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="role_understanding" value="well" required /> よく理解できた</label></li>
+          <li><label><input type="radio" name="role_understanding" value="somewhat" /> だいたい理解できた</label></li>
+          <li><label><input type="radio" name="role_understanding" value="little" /> あまり理解できなかった</label></li>
+          <li><label><input type="radio" name="role_understanding" value="no" /> 理解できなかった</label></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- セクション2: 全体評価 -->
+    <section>
+      <h2>2. 全体評価</h2>
+      <div class="q">
+        <label>全体として、このプロトタイプの使いやすさはどの程度でしたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ease_of_use" value="1" required /> 1: とても使いにくい</label></li>
+          <li><label><input type="radio" name="ease_of_use" value="2" /> 2</label></li>
+          <li><label><input type="radio" name="ease_of_use" value="3" /> 3</label></li>
+          <li><label><input type="radio" name="ease_of_use" value="4" /> 4</label></li>
+          <li><label><input type="radio" name="ease_of_use" value="5" /> 5: とても使いやすい</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>実際にデータがつながり、正常に動く環境になったら、日常業務で使いたいと思いますか？</label>
+        <ul>
+          <li><label><input type="radio" name="would_use" value="1" required /> 1: 使いたくない</label></li>
+          <li><label><input type="radio" name="would_use" value="2" /> 2</label></li>
+          <li><label><input type="radio" name="would_use" value="3" /> 3</label></li>
+          <li><label><input type="radio" name="would_use" value="4" /> 4</label></li>
+          <li><label><input type="radio" name="would_use" value="5" /> 5: ぜひ使いたい</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>このツールを同僚に勧めますか？（0＝全く勧めない 〜 10＝ぜひ勧めたい）</label>
+        <select name="nps" required>
+          <option value="">選択してください</option>
+          <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+        </select>
+      </div>
+      <div class="q">
+        <label>このプロトタイプをそのまま本番として営業チームに配布してよいと思いますか？</label>
+        <ul>
+          <li><label><input type="radio" name="ready_for_production" value="yes" required /> はい</label></li>
+          <li><label><input type="radio" name="ready_for_production" value="rather_yes" /> どちらかといえばはい</label></li>
+          <li><label><input type="radio" name="ready_for_production" value="neutral" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ready_for_production" value="rather_no" /> どちらかといえばいいえ</label></li>
+          <li><label><input type="radio" name="ready_for_production" value="no" /> いいえ</label></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- セクション3: UI/UX 厳格評価 -->
+    <section>
+      <h2>3. UI/UX 厳格評価</h2>
+      <p class="note">各問で「とても良い / やや良い / どちらでもない / やや悪い / とても悪い / 該当しない・まだ使っていない」のいずれかを選んでください。</p>
+      <div class="q">
+        <label>初めて開いたとき、「何ができるツールか」が一目で分かりましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_1" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_1" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_1" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_1" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_1" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_1" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>ヘッダー・サイドバー・チャットエリアの役割が分かりやすく、迷いませんでしたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_2" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_2" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_2" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_2" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_2" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_2" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>「会社・案件・議事録は Google Drive、サマリーはこのチャット」という役割分担が画面から理解できましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_3" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_3" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_3" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_3" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_3" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_3" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>空状態の「何をしますか？」＋アクションカードで、次の操作が自然に選べましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_4" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_4" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_4" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_4" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_4" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_4" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>モバイル・タブレットで使った場合、レイアウトやタップ領域に不満はありませんでしたか？（PCのみの方は「該当しない」を選んでください）</label>
+        <ul>
+          <li><label><input type="radio" name="ux_5" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_5" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_5" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_5" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_5" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_5" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>案件一覧・会社一覧・議事録一覧にアクセスする導線は分かりやすかったですか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_6" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_6" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_6" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_6" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_6" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_6" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>一覧は Google Drive へのリンクで提供される想定について、そのつながりは分かりやすかったですか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_7" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_7" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_7" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_7" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_7" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_7" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>お気に入り・最近の議事録から目的のサマリーや案件にたどり着けましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_8" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_8" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_8" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_8" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_8" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_8" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>入力欄・送信ボタン・添付の位置と操作は直感的でしたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_9" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_9" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_9" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_9" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_9" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_9" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>サジェストチップ・アクションカードは押しやすく、意図に合う選択肢でしたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_10" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_10" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_10" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_10" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_10" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_10" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>AI 応答の表示（マークダウン・改行・長文）は読みやすかったですか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_11" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_11" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_11" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_11" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_11" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_11" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>「考え中...」などローディング表示は適切で、待ち時間の見積もりがしやすかったですか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_12" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_12" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_12" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_12" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_12" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_12" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>用語（案件・会社・議事録・サマリー・商談など）は営業業務と一致しており、違和感はありませんでしたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_13" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_13" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_13" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_13" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_13" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_13" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>ヘッダー・サイドバー・チャット内で、同じ機能への入口が複数ある場合に混乱しませんでしたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_14" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_14" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_14" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_14" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_14" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_14" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>エラーや空状態のメッセージは分かりやすく、次に何をすべきか判断できましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="ux_15" value="5" required /> とても良い</label></li>
+          <li><label><input type="radio" name="ux_15" value="4" /> やや良い</label></li>
+          <li><label><input type="radio" name="ux_15" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="ux_15" value="2" /> やや悪い</label></li>
+          <li><label><input type="radio" name="ux_15" value="1" /> とても悪い</label></li>
+          <li><label><input type="radio" name="ux_15" value="na" /> 該当しない・まだ使っていない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>UI/UX について「これは直すべき」と強く思った点があれば、該当するものをすべて選んでください。（複数可）</label>
+        <ul>
+          <li><label><input type="checkbox" name="fix_layout" value="1" /> レイアウトが分かりにくい</label></li>
+          <li><label><input type="checkbox" name="fix_nav" value="1" /> 導線が分かりにくい</label></li>
+          <li><label><input type="checkbox" name="fix_chat" value="1" /> チャットの操作性</label></li>
+          <li><label><input type="checkbox" name="fix_terms" value="1" /> 用語・ラベルの分かりにくさ</label></li>
+          <li><label><input type="checkbox" name="fix_display" value="1" /> 表示の読みにくさ</label></li>
+          <li><label><input type="checkbox" name="fix_mobile" value="1" /> モバイルでの使いにくさ</label></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- セクション4: タスク別評価 -->
+    <section>
+      <h2>4. タスク別評価</h2>
+      <p class="note">各問で「とてもできた / ややできた / どちらでもない / やや困った / とても困った / 該当しない・試していない」のいずれかを選んでください。</p>
+      <div class="q">
+        <label>「〇〇社の状況は？」のように聞いてサマリーを取り出せましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="task_1" value="5" required /> とてもできた</label></li>
+          <li><label><input type="radio" name="task_1" value="4" /> ややできた</label></li>
+          <li><label><input type="radio" name="task_1" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="task_1" value="2" /> やや困った</label></li>
+          <li><label><input type="radio" name="task_1" value="1" /> とても困った</label></li>
+          <li><label><input type="radio" name="task_1" value="na" /> 該当しない・試していない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>案件一覧・会社一覧・議事録一覧を（チャットまたはリンクで）確認できましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="task_2" value="5" required /> とてもできた</label></li>
+          <li><label><input type="radio" name="task_2" value="4" /> ややできた</label></li>
+          <li><label><input type="radio" name="task_2" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="task_2" value="2" /> やや困った</label></li>
+          <li><label><input type="radio" name="task_2" value="1" /> とても困った</label></li>
+          <li><label><input type="radio" name="task_2" value="na" /> 該当しない・試していない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>次のアクションや提案書作成のような依頼を、チャットで試せましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="task_3" value="5" required /> とてもできた</label></li>
+          <li><label><input type="radio" name="task_3" value="4" /> ややできた</label></li>
+          <li><label><input type="radio" name="task_3" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="task_3" value="2" /> やや困った</label></li>
+          <li><label><input type="radio" name="task_3" value="1" /> とても困った</label></li>
+          <li><label><input type="radio" name="task_3" value="na" /> 該当しない・試していない</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>Google Drive の一覧とこのチャットの役割の切り分けが理解できましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="task_4" value="5" required /> とてもできた</label></li>
+          <li><label><input type="radio" name="task_4" value="4" /> ややできた</label></li>
+          <li><label><input type="radio" name="task_4" value="3" /> どちらでもない</label></li>
+          <li><label><input type="radio" name="task_4" value="2" /> やや困った</label></li>
+          <li><label><input type="radio" name="task_4" value="1" /> とても困った</label></li>
+          <li><label><input type="radio" name="task_4" value="na" /> 該当しない・試していない</label></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- セクション5: 自由記述 -->
+    <section>
+      <h2>5. 自由記述</h2>
+      <p class="note">「特になし」と書いていただいて構いません。可能であれば1つでもご記入いただけると改善に役立ちます。厳しいご意見も歓迎します。</p>
+      <div class="q">
+        <label>UI/UX で不満・違和感・直してほしい点</label>
+        <textarea name="free_ux" placeholder="例: ボタンが小さく押しづらい"></textarea>
+      </div>
+      <div class="q">
+        <label>「こうなっていたらもっと使える」という要望</label>
+        <textarea name="free_wish" placeholder="例: 議事録を日付で絞り込みたい"></textarea>
+      </div>
+      <div class="q">
+        <label>その他、運営への伝言</label>
+        <textarea name="free_other" placeholder="特になし"></textarea>
+      </div>
+    </section>
+
+    <!-- セクション6: 属性 -->
+    <section>
+      <h2>6. 属性（任意）</h2>
+      <div class="q">
+        <label>主な役職を教えてください。</label>
+        <ul>
+          <li><label><input type="radio" name="role" value="pm" /> 営業PM</label></li>
+          <li><label><input type="radio" name="role" value="sales" /> 営業担当</label></li>
+          <li><label><input type="radio" name="role" value="manager" /> マネージャー</label></li>
+          <li><label><input type="radio" name="role" value="other" /> その他</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>営業経験年数はどれくらいですか？</label>
+        <ul>
+          <li><label><input type="radio" name="experience" value="under1" /> 〜1年</label></li>
+          <li><label><input type="radio" name="experience" value="1-3" /> 1〜3年</label></li>
+          <li><label><input type="radio" name="experience" value="3-5" /> 3〜5年</label></li>
+          <li><label><input type="radio" name="experience" value="5plus" /> 5年〜</label></li>
+        </ul>
+      </div>
+      <div class="q">
+        <label>このプロトタイプを主にどの端末で利用しましたか？</label>
+        <ul>
+          <li><label><input type="radio" name="device" value="pc" /> PCのみ</label></li>
+          <li><label><input type="radio" name="device" value="mobile" /> スマホ・タブレット中心</label></li>
+          <li><label><input type="radio" name="device" value="both" /> 両方</label></li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="form-footer">
+      <button type="submit">送信する</button>
+      <p style="margin-top:1rem;">本ファイルはテスト用・紙のアンケート原稿用のひな形です。本番で回答を収集する場合は、Google フォームを作成しそのURLを配布してください。詳しくは <a href="SURVEY_UX.md">SURVEY_UX.md</a> を参照してください。</p>
+    </div>
+  </form>
+
+  <script>
+    document.getElementById('survey').onsubmit = function() {
+      alert('回答ありがとうございます。本番での収集は Google フォームのURLを配布して行ってください。');
+      return false;
+    };
+  </script>
+</body>
+</html>
