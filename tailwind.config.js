@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        park: {
+        pitch: {
           navy: '#1e3a5f',
           navyLight: '#2d4a6f',
           orange: '#e85d04',

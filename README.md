@@ -1,12 +1,12 @@
-# PARK Agent
+# Pitch - 提案書ジェネレーター
 
-営業特化・日本語チャット1画面のプロトタイプ。議事録が裏に溜まり、聞けば答え、頼めば作る。
+自社サービス特化の提案書AI自動生成ツール。PDFからサービス情報を構造化抽出し、ヒアリング情報と組み合わせて提案書をワンクリック生成。
 
 ## 構成
 
-- **フロント**: Vite + React + TypeScript + Tailwind（Navy / Orange）
-- **バックエンド**: Express + Gemini API（`/api/chat`）
-- **データ**: 議事録モック（プレスマンMTG + A社/B社）をサーバーが参照して応答
+- **フロント**: Vite + React + TypeScript + Tailwind + React Router
+- **バックエンド**: Express + Gemini API
+- **データ**: JSON永続化（server/data/）
 
 ## セットアップ
 
@@ -20,23 +20,20 @@ npm run dev
 - フロント: http://localhost:5179
 - API: http://localhost:3002
 
-## 機能
+## 画面構成
 
-- ヘッダー（PARK ロゴ・営業AI・設定）
-- 左サイド: お気に入り会社（クリックで入力欄に文言セット）、最近の議事録（クリックで要約を会話に追加）
-- チャット: ウェルカム、サジェストチップ、メッセージ履歴、入力欄
-- モバイル: サイドはハンバーガーボタンで開閉
+| 画面 | パス | 概要 |
+|---|---|---|
+| 会社プロフィール | `/settings` | 初回オンボーディング＋会社情報編集 |
+| サービス管理 | `/services` | PDF登録→AI構造化抽出→編集 |
+| 提案書作成 | `/generate` | 提案先＋サービス選択＋ヒアリング→生成 |
+| 提案書履歴 | `/proposals` | 過去の提案書一覧・プレビュー・印刷 |
 
-## GitHub Pages で公開
+## API
 
-**注意**: GitHub Pages は静的サイトのみ。チャットの AI 応答（API）は動きません。UI のデモとして公開されます。
-
-```bash
-npm install
-npm run deploy
-```
-
-1. GitHub でリポジトリ `park_agent` を新規作成（空のまま）
-2. `npm run deploy` で `gh-pages` ブランチにビルドを push。GitHub の **Settings → Pages** で「Deploy from a branch」を選び、Branch に `gh-pages` / フォルダに `/ (root)` を指定すると `https://tsubasagit.github.io/park_agent/` で公開されます。
-
-リポジトリ名を変えた場合は `package.json` の `build:gh` の `--base /park_agent/` を `/あなたのリポジトリ名/` に合わせて変更してください。
+| Method | Path | 用途 |
+|---|---|---|
+| GET/POST | `/api/company` | 会社プロフィール |
+| GET/POST/PUT/DELETE | `/api/services` | サービスCRUD |
+| POST | `/api/generate` | 提案書生成 |
+| GET | `/api/proposals` | 提案書履歴 |

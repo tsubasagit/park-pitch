@@ -1,18 +1,18 @@
 {
-  "name": "park-agent",
+  "name": "park-pitch",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite\" \"npx tsx server/index.ts\"",
     "dev:frontend": "vite",
     "dev:server": "npx tsx server/index.ts",
     "build": "tsc -b && vite build",
-    "build:gh": "vite build --base /park_agent/",
+    "build:gh": "vite build --base /park-pitch/",
     "preview": "vite preview",
     "deploy": "npm run build:gh && gh-pages -d dist"
   },
-  "homepage": "https://tsubasagit.github.io/park_agent/",
+  "homepage": "https://tsubasagit.github.io/park-pitch/",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
@@ -22,6 +22,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.13.1",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {

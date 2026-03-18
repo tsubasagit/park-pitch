@@ -6,3 +6,137 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Print styles */
+@media print {
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  main {
+    padding: 0;
+  }
+
+  .proposal-page {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 2cm !important;
+    margin: 0 !important;
+    page-break-after: always;
+  }
+
+  .proposal-page:last-child {
+    page-break-after: auto;
+  }
+
+  .proposal-content {
+    max-width: none;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
+/* Slide-in animation */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Slide cover typography */
+.slide-cover h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 0.5em;
+}
+
+.slide-cover h2 {
+  font-size: 1.2rem;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-bottom: 1.5em;
+}
+
+.slide-cover p {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+/* Slide body — scale text for 16:9 */
+.slide-body {
+  font-size: 0.95rem;
+}
+
+.slide-body h1 {
+  font-size: 1.6rem;
+  border-bottom: 2px solid #1e3a5f;
+  padding-bottom: 0.3em;
+  margin-bottom: 0.8em;
+}
+
+.slide-body h2 {
+  font-size: 1.3rem;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.slide-body h3 {
+  font-size: 1.1rem;
+  margin-top: 0.8em;
+}
+
+.slide-body ul,
+.slide-body ol {
+  padding-left: 1.2em;
+}
+
+.slide-body li {
+  margin-bottom: 0.3em;
+}
+
+.slide-body table {
+  font-size: 0.85rem;
+}
+
+/* Editable slide indicator */
+.slide-editable {
+  cursor: text;
+  min-height: 100px;
+}
+
+.slide-editable:focus {
+  outline: none;
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
