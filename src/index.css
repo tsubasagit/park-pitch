@@ -7,10 +7,11 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Print styles */
+/* Print styles — A4 PDF 出力最適化 */
 @media print {
   header,
   nav,
+  aside,
   .print\:hidden {
     display: none !important;
   }
@@ -23,6 +24,7 @@ body {
     padding: 0;
   }
 
+  /* 提案書ページ: 各セクションを改ページ */
   .proposal-page {
     border: none !important;
     box-shadow: none !important;
@@ -30,6 +32,7 @@ body {
     padding: 2cm !important;
     margin: 0 !important;
     page-break-after: always;
+    page-break-inside: avoid;
   }
 
   .proposal-page:last-child {
@@ -38,6 +41,28 @@ body {
 
   .proposal-content {
     max-width: none;
+  }
+
+  .proposal-document {
+    padding: 0;
+  }
+
+  /* 表紙は高さフル */
+  .proposal-page:first-child {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* テーブルの列幅を維持 */
+  table {
+    width: 100%;
+  }
+
+  /* リンク色を印刷用に */
+  a {
+    color: #1e3a5f !important;
+    text-decoration: none !important;
   }
 
   @page {
@@ -58,72 +83,6 @@ body {
 
 .animate-slide-in {
   animation: slide-in-right 0.3s ease-out;
-}
-
-/* Slide cover typography */
-.slide-cover h1 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 0.5em;
-}
-
-.slide-cover h2 {
-  font-size: 1.2rem;
-  font-weight: 400;
-  opacity: 0.8;
-  margin-bottom: 1.5em;
-}
-
-.slide-cover p {
-  font-size: 1rem;
-  opacity: 0.7;
-}
-
-/* Slide body — scale text for 16:9 */
-.slide-body {
-  font-size: 0.95rem;
-}
-
-.slide-body h1 {
-  font-size: 1.6rem;
-  border-bottom: 2px solid #1e3a5f;
-  padding-bottom: 0.3em;
-  margin-bottom: 0.8em;
-}
-
-.slide-body h2 {
-  font-size: 1.3rem;
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-}
-
-.slide-body h3 {
-  font-size: 1.1rem;
-  margin-top: 0.8em;
-}
-
-.slide-body ul,
-.slide-body ol {
-  padding-left: 1.2em;
-}
-
-.slide-body li {
-  margin-bottom: 0.3em;
-}
-
-.slide-body table {
-  font-size: 0.85rem;
-}
-
-/* Editable slide indicator */
-.slide-editable {
-  cursor: text;
-  min-height: 100px;
-}
-
-.slide-editable:focus {
-  outline: none;
 }
 
 /* Line clamp utility */

@@ -1,33 +1,22 @@
-import { useState, useRef, useEffect, type FormEvent } from 'react'
-import type { Service, Proposal } from '../types'
+import { useState, type FormEvent } from 'react'
+import type { Proposal, ProposalJSON } from '../types'
 import { generateProposal } from '../api/client'
-import SlidePresentation from './SlidePresentation'
+import ProposalRenderer from './ProposalRenderer'
 
 interface EditorViewProps {
   proposal: Proposal
-  services: Service[]
   onNew: () => void
   onProposalGenerated: (proposal: Proposal) => void
 }
 
-export default function EditorView({ proposal, services: _services, onNew, onProposalGenerated }: EditorViewProps) {
-  const [previewTab, setPreviewTab] = useState<'preview' | 'markdown'>('preview')
+export default function EditorView({ proposal, onNew, onProposalGenerated }: EditorViewProps) {
+  const [previewTab, setPreviewTab] = useState<'preview' | 'json'>('preview')
   const [chatInput, setChatInput] = useState('')
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
-  const chatEndRef = useRef<HTMLDivElement>(null)
 
-  const pages = proposal.markdownContent
-    .split(/\n---\n/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-
-  // Build summary of what was generated
-  const hearingInfo = proposal.hearingInput
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [proposal])
+  const proposalData = proposal.jsonContent as ProposalJSON
+  const req = proposal.proposalRequest
 
   const handleRegenerate = async (e: FormEvent) => {
     e.preventDefault()
@@ -36,11 +25,15 @@ export default function EditorView({ proposal, services: _services, onNew, onPro
     setError('')
     try {
       const newProposal = await generateProposal({
-        clientName: proposal.clientName || undefined,
-        serviceIds: proposal.serviceIds,
-        challenge: `${hearingInfo.challenge}\n\n追加リクエスト: ${chatInput}`,
-        budget: hearingInfo.budget,
-        timeline: hearingInfo.timeline,
+        freeText: `${req.freeText}\n\n追加リクエスト: ${chatInput}`,
+        clientName: req.clientName,
+        purpose: req.purpose,
+        productIds: req.productIds,
+        quantity: req.quantity,
+        unitPriceMin: req.unitPriceMin,
+        unitPriceMax: req.unitPriceMax,
+        deliveryDate: req.deliveryDate,
+        customization: req.customization,
       })
       setChatInput('')
       onProposalGenerated(newProposal)
@@ -53,7 +46,7 @@ export default function EditorView({ proposal, services: _services, onNew, onPro
 
   return (
     <div className="flex-1 flex overflow-hidden">
-      {/* Left panel — text / chat */}
+      {/* Left panel */}
       <div className="w-96 border-r border-gray-200 bg-white flex flex-col shrink-0">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -73,57 +66,79 @@ export default function EditorView({ proposal, services: _services, onNew, onPro
           </div>
         </div>
 
-        {/* Content history */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-          {/* Hearing summary */}
+          {/* 要件サマリー */}
           <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-xs font-semibold text-gray-400 uppercase mb-2">入力情報</div>
+            <div className="text-xs font-semibold text-gray-400 uppercase mb-2">提案内容</div>
             <div className="space-y-1.5 text-sm text-gray-700">
-              <div>
-                <span className="text-xs text-gray-400">課題:</span>
-                <p className="text-sm">{hearingInfo.challenge}</p>
-              </div>
-              {hearingInfo.budget && (
+              {req.purpose && (
                 <div>
-                  <span className="text-xs text-gray-400">予算:</span>
-                  <span className="ml-1">{hearingInfo.budget}</span>
+                  <span className="text-xs text-gray-400">用途:</span>
+                  <p className="text-sm">{req.purpose}</p>
                 </div>
               )}
-              {hearingInfo.timeline && (
+              {req.quantity && (
                 <div>
-                  <span className="text-xs text-gray-400">時期:</span>
-                  <span className="ml-1">{hearingInfo.timeline}</span>
+                  <span className="text-xs text-gray-400">数量:</span>
+                  <span className="ml-1">{req.quantity.toLocaleString()}個</span>
                 </div>
               )}
-              <div>
-                <span className="text-xs text-gray-400">サービス:</span>
-                <span className="ml-1">{proposal.serviceNames.join('、')}</span>
-              </div>
+              {(req.unitPriceMin || req.unitPriceMax) && (
+                <div>
+                  <span className="text-xs text-gray-400">単価:</span>
+                  <span className="ml-1">
+                    ¥{req.unitPriceMin || '?'}〜¥{req.unitPriceMax || '?'}
+                  </span>
+                </div>
+              )}
+              {req.deliveryDate && (
+                <div>
+                  <span className="text-xs text-gray-400">納期:</span>
+                  <span className="ml-1">{req.deliveryDate}</span>
+                </div>
+              )}
+              {req.customization && (
+                <div>
+                  <span className="text-xs text-gray-400">カスタマイズ:</span>
+                  <span className="ml-1">{req.customization}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Generated content outline */}
+          {/* 選択商品 */}
           <div>
             <div className="text-xs font-semibold text-gray-400 uppercase mb-2">
-              スライド構成（{pages.length}枚）
+              選択商品（{proposal.productNames.length}件）
             </div>
-            <div className="space-y-1">
-              {pages.map((page, i) => {
-                const firstLine = page.split('\n').find((l) => l.trim())?.replace(/^#+\s*/, '') || `スライド ${i + 1}`
-                return (
-                  <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-gray-600 hover:bg-gray-50">
-                    <span className="text-xs text-gray-400 w-4 text-right">{i + 1}</span>
-                    <span className="truncate">{firstLine}</span>
-                  </div>
-                )
-              })}
+            <div className="space-y-2">
+              {proposal.productNames.map((name, i) => (
+                <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-gray-600 bg-gray-50">
+                  <span className="text-xs text-pitch-navy font-medium w-4 text-right">{i + 1}</span>
+                  <span className="truncate">{name}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div ref={chatEndRef} />
+          {/* ページ構成 */}
+          <div>
+            <div className="text-xs font-semibold text-gray-400 uppercase mb-2">ページ構成</div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <PageOutlineItem label="表紙" />
+              {proposalData.greeting && <PageOutlineItem label="ご挨拶" />}
+              {proposalData.products?.map((p, i) => (
+                <PageOutlineItem key={i} label={`商品 ${i + 1}: ${p.name}`} />
+              ))}
+              {proposalData.comparison && <PageOutlineItem label="商品比較" />}
+              {(proposalData.delivery || proposalData.pricing) && <PageOutlineItem label="納期・費用" />}
+              {proposalData.companyInfo && <PageOutlineItem label="会社紹介" />}
+            </div>
+          </div>
         </div>
 
-        {/* Chat input at bottom */}
+        {/* Chat input */}
         <div className="border-t border-gray-200 p-3">
           {error && (
             <div className="mb-2 p-2 bg-red-50 border border-red-200 text-red-700 text-xs rounded">
@@ -138,7 +153,7 @@ export default function EditorView({ proposal, services: _services, onNew, onPro
                 onChange={(e) => setChatInput(e.target.value)}
                 disabled={generating}
                 className="w-full px-3 py-2 text-sm bg-transparent border-0 focus:outline-none"
-                placeholder="スライドのリクエストを入力してください"
+                placeholder="修正リクエストを入力..."
               />
             </div>
             <button
@@ -158,7 +173,7 @@ export default function EditorView({ proposal, services: _services, onNew, onPro
         </div>
       </div>
 
-      {/* Right panel — slide preview */}
+      {/* Right panel — proposal preview */}
       <div className="flex-1 flex flex-col overflow-hidden bg-gray-100">
         {/* Tabs */}
         <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
@@ -176,43 +191,49 @@ export default function EditorView({ proposal, services: _services, onNew, onPro
             </button>
             <button
               type="button"
-              onClick={() => setPreviewTab('markdown')}
+              onClick={() => setPreviewTab('json')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                previewTab === 'markdown'
+                previewTab === 'json'
                   ? 'bg-pitch-navy/10 text-pitch-navy'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              コード
+              JSON
             </button>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg"
-            >
-              印刷
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg"
+          >
+            印刷 / PDF
+          </button>
         </div>
 
         {/* Content */}
         {previewTab === 'preview' ? (
-          <SlidePresentation
-            proposal={proposal}
-            onNew={onNew}
-            embedded
-            onProposalUpdated={onProposalGenerated}
-          />
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="max-w-[900px] mx-auto proposal-content">
+              <ProposalRenderer data={proposalData} />
+            </div>
+          </div>
         ) : (
           <div className="flex-1 overflow-auto p-4">
             <pre className="bg-white rounded-lg border border-gray-200 p-4 text-sm text-gray-800 whitespace-pre-wrap font-mono">
-              {proposal.markdownContent}
+              {JSON.stringify(proposalData, null, 2)}
             </pre>
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function PageOutlineItem({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50">
+      <span className="w-1.5 h-1.5 rounded-full bg-pitch-navy/40" />
+      <span className="truncate text-sm">{label}</span>
     </div>
   )
 }

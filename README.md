@@ -37,3 +37,16 @@ npm run dev
 | GET/POST/PUT/DELETE | `/api/services` | サービスCRUD |
 | POST | `/api/generate` | 提案書生成 |
 | GET | `/api/proposals` | 提案書履歴 |
+| GET | `/api/blooming/products` | Blooming 商品一覧 |
+| GET | `/api/blooming/products/:id` | Blooming 商品詳細 |
+| POST | `/api/blooming/recommend` | Blooming レコメンド検索 |
+| GET | `/api/blooming/filters` | Blooming フィルタ選択肢 |
+| GET | `/api/blooming/recommendations` | Blooming レコメンド履歴 |
+
+## Blooming 商品レコメンド（モック優先）
+
+- サイドバーの「Blooming」でモード切替。キーワード＋フィルタで商品をおすすめ表示。
+- **モック切替ポイント**:
+  - ランキング: `server/blooming.ts` の `mockRank` を、`server/prompts.ts` の `buildRecommendationPrompt` + Gemini 呼び出しに差し替え可。
+  - エンリッチメント: `server/scrapers/enrichProducts.ts` は `GEMINI_API_KEY` 未設定時はモックでタグ付与。設定時は実APIでエンリッチ。
+- データ投入: `npm run seed:blooming` でモックスクレイプ → マージ → エンリッチを一括実行（`server/data/blooming_products.json` を生成）。

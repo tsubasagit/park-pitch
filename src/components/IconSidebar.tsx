@@ -1,20 +1,26 @@
 import { useState } from 'react'
 import type { ProposalSummary } from '../types'
 
+export type AppView = 'home' | 'catalog' | 'editor'
+
 interface IconSidebarProps {
+  currentView: AppView
   proposals: ProposalSummary[]
+  cartCount: number
   onSelectProposal: (p: ProposalSummary) => void
   onOpenSettings: () => void
   onGoHome: () => void
-  activeView: 'home' | 'editor'
+  onGoCatalog: () => void
 }
 
 export default function IconSidebar({
+  currentView,
   proposals,
+  cartCount,
   onSelectProposal,
   onOpenSettings,
   onGoHome,
-  activeView,
+  onGoCatalog,
 }: IconSidebarProps) {
   return (
     <aside className="w-14 bg-white border-r border-gray-200 flex flex-col items-center py-3 gap-1 shrink-0 print:hidden">
@@ -23,12 +29,12 @@ export default function IconSidebar({
         type="button"
         onClick={onGoHome}
         className="w-9 h-9 rounded-lg bg-pitch-navy text-white flex items-center justify-center text-sm font-bold mb-3"
-        title="ホーム"
+        title="Park-Pitch"
       >
         P
       </button>
 
-      {/* New */}
+      {/* Home */}
       <SidebarIcon
         icon={
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,9 +42,28 @@ export default function IconSidebar({
           </svg>
         }
         label="新規"
-        active={activeView === 'home'}
+        active={currentView === 'home'}
         onClick={onGoHome}
       />
+
+      {/* Catalog */}
+      <div className="relative">
+        <SidebarIcon
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          }
+          label="カタログ"
+          active={currentView === 'catalog'}
+          onClick={onGoCatalog}
+        />
+        {cartCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center pointer-events-none">
+            {cartCount > 9 ? '9+' : cartCount}
+          </span>
+        )}
+      </div>
 
       {/* History */}
       <HistorySidebarItem proposals={proposals} onSelect={onSelectProposal} />
@@ -136,7 +161,7 @@ function HistorySidebarItem({
                   <div className="text-sm font-medium text-gray-900 truncate">
                     {p.clientName || '御社'} 向け
                   </div>
-                  <div className="text-xs text-gray-500 truncate">{p.serviceNames.join('、')}</div>
+                  <div className="text-xs text-gray-500 truncate">{p.productNames.join('、')}</div>
                   <div className="text-xs text-gray-400">{new Date(p.createdAt).toLocaleDateString('ja-JP')}</div>
                 </button>
               ))

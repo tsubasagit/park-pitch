@@ -4,9 +4,10 @@ import path from 'path'
 import dotenv from 'dotenv'
 import multer from 'multer'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { readJSON, writeJSON, deleteFile, getUploadsDir } from './storage'
-import { PDF_EXTRACTION_PROMPT, buildProposalPrompt } from './prompts'
-import fs from 'fs'
+import { readJSON, writeJSON, getUploadsDir } from './storage'
+import { TEXT_EXTRACTION_PROMPT, buildBloomingProposalPrompt } from './prompts'
+import bloomingRouter from './blooming'
+import { loadBloomingProducts, searchCandidates } from './search'
 
 dotenv.config()
 
@@ -31,27 +32,12 @@ app.use(
 )
 app.use(express.json({ limit: '256kb' }))
 
+app.use('/api/blooming', bloomingRouter)
+
 // Static uploads
 app.use('/api/uploads', express.static(getUploadsDir()))
 
-// Multer for PDF uploads
-const pdfStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, getUploadsDir()),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname)
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`)
-  },
-})
-const uploadPdf = multer({
-  storage: pdfStorage,
-  limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype === 'application/pdf') cb(null, true)
-    else cb(new Error('PDFファイルのみアップロード可能です'))
-  },
-})
-
-// Multer for logo uploads (memory)
+// Multer for logo uploads
 const uploadLogo = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, getUploadsDir()),
@@ -110,145 +96,120 @@ app.post('/api/company', uploadLogo.single('logo'), (req, res) => {
   res.json(company)
 })
 
-// ─── Services ─────────────────────────────────────────
+// ─── Parse Request (テキスト→構造化データ抽出 + 商品レコメンド) ───
 
-interface ServiceFeature { name: string; description: string }
-interface ServiceData {
-  id: string; name: string; category: string
-  overview: string; targetClients: string
-  challengesSolved: string[]; deliverables: ServiceFeature[]
-  expertType: string; engagementType: string
-  pdfFilename: string; pdfOriginalName: string
-  createdAt: string; updatedAt: string
-}
-
-function getServices(): ServiceData[] {
-  return readJSON<ServiceData[]>('services.json') || []
-}
-
-function saveServices(services: ServiceData[]) {
-  writeJSON('services.json', services)
-}
-
-app.get('/api/services', (_req, res) => {
-  res.json(getServices())
-})
-
-app.post('/api/services', uploadPdf.single('pdf'), async (req, res) => {
+app.post('/api/parse-request', async (req, res) => {
   try {
-    if (!req.file) {
-      res.status(400).json({ error: 'PDFファイルが必要です' })
+    const { text } = req.body as { text: string }
+    if (!text?.trim()) {
+      res.status(400).json({ error: 'テキストを入力してください' })
       return
     }
 
-    // Read PDF and send to Gemini for extraction
-    const pdfBuffer = fs.readFileSync(req.file.path)
-    const pdfBase64 = pdfBuffer.toString('base64')
+    // Gemini でテキストから構造化データ抽出
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: `${TEXT_EXTRACTION_PROMPT}\n\n入力テキスト:\n${text}` }] }],
+    })
+    const responseText = result.response.text()
+    const cleaned = responseText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
 
-    let extracted: Partial<ServiceData> = {}
+    let parsed: {
+      clientName: string
+      purpose: string
+      quantity: number | null
+      unitPriceMin: number | null
+      unitPriceMax: number | null
+      deliveryDate: string | null
+      customization: string
+      keywords: string[]
+    }
+
     try {
-      const result = await model.generateContent({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: PDF_EXTRACTION_PROMPT },
-              { inlineData: { mimeType: 'application/pdf', data: pdfBase64 } },
-            ],
-          },
-        ],
-      })
-      const text = result.response.text()
-      // Remove markdown code fences if present
-      const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
-      extracted = JSON.parse(cleaned)
-    } catch (parseErr) {
-      console.error('[PDF抽出] パース失敗、空フィールドで返却:', parseErr)
+      parsed = JSON.parse(cleaned)
+    } catch {
+      parsed = {
+        clientName: '',
+        purpose: text,
+        quantity: null,
+        unitPriceMin: null,
+        unitPriceMax: null,
+        deliveryDate: null,
+        customization: '',
+        keywords: [],
+      }
     }
 
-    const id = `svc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-    const service: ServiceData = {
-      id,
-      name: extracted.name || '',
-      category: extracted.category || '',
-      overview: extracted.overview || '',
-      targetClients: extracted.targetClients || '',
-      challengesSolved: extracted.challengesSolved || [],
-      deliverables: extracted.deliverables || [],
-      expertType: extracted.expertType || '',
-      engagementType: extracted.engagementType || '',
-      pdfFilename: req.file.filename,
-      pdfOriginalName: req.file.originalname,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    // 商品レコメンド: キーワードでカタログ検索
+    const searchQuery = (parsed.keywords || []).join(' ')
+    const filters = {
+      budgetMin: parsed.unitPriceMin ?? undefined,
+      budgetMax: parsed.unitPriceMax ?? undefined,
     }
+    const candidates = searchCandidates(filters, searchQuery, 50)
 
-    const services = getServices()
-    services.push(service)
-    saveServices(services)
+    // スコアリング（簡易版）
+    const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean)
+    const scored = candidates.map((p) => {
+      let score = (p.giftScore ?? 5) / 10
+      const matchedTags: string[] = []
+      for (const t of terms) {
+        if ((p.name || '').toLowerCase().includes(t)) { score += 0.2; matchedTags.push(t) }
+        if ((p.aiSummary || '').toLowerCase().includes(t)) { score += 0.15 }
+        for (const tag of p.occasionTags || []) {
+          if (tag.toLowerCase().includes(t)) { score += 0.1; matchedTags.push(tag) }
+        }
+        if ((p.category || '').toLowerCase().includes(t)) { score += 0.15; matchedTags.push(p.category) }
+      }
+      return { product: p, score: Math.min(1, score), matchedTags: [...new Set(matchedTags)] }
+    })
+    scored.sort((a, b) => b.score - a.score)
+    const recommendedProducts = scored.slice(0, 10).map((s, i) => ({
+      ...s.product,
+      rank: i + 1,
+      score: s.score,
+      matchedTags: s.matchedTags,
+    }))
 
-    res.json(service)
+    res.json({
+      parsed: {
+        clientName: parsed.clientName || '',
+        purpose: parsed.purpose || '',
+        quantity: parsed.quantity,
+        unitPriceMin: parsed.unitPriceMin,
+        unitPriceMax: parsed.unitPriceMax,
+        deliveryDate: parsed.deliveryDate,
+        customization: parsed.customization || '',
+      },
+      recommendedProducts,
+    })
   } catch (err) {
-    console.error('[POST /api/services]', err)
+    console.error('[POST /api/parse-request]', err)
     res.status(500).json({
-      error: err instanceof Error ? err.message : 'サービス登録に失敗しました',
+      error: err instanceof Error ? err.message : 'テキスト解析に失敗しました',
     })
   }
-})
-
-app.put('/api/services/:id', (req, res) => {
-  const services = getServices()
-  const idx = services.findIndex((s) => s.id === req.params.id)
-  if (idx === -1) {
-    res.status(404).json({ error: 'サービスが見つかりません' })
-    return
-  }
-
-  const updates = req.body as Partial<ServiceData>
-  services[idx] = {
-    ...services[idx],
-    ...updates,
-    id: services[idx].id,
-    pdfFilename: services[idx].pdfFilename,
-    pdfOriginalName: services[idx].pdfOriginalName,
-    createdAt: services[idx].createdAt,
-    updatedAt: new Date().toISOString(),
-  }
-
-  saveServices(services)
-  res.json(services[idx])
-})
-
-app.delete('/api/services/:id', (req, res) => {
-  const services = getServices()
-  const idx = services.findIndex((s) => s.id === req.params.id)
-  if (idx === -1) {
-    res.status(404).json({ error: 'サービスが見つかりません' })
-    return
-  }
-
-  const service = services[idx]
-  // Delete PDF file
-  if (service.pdfFilename) {
-    deleteFile(path.join(getUploadsDir(), service.pdfFilename))
-  }
-
-  services.splice(idx, 1)
-  saveServices(services)
-  res.json({ ok: true })
 })
 
 // ─── Proposals ────────────────────────────────────────
 
 interface ProposalData {
-  id: string; serviceIds: string[]; serviceNames: string[]
+  id: string
+  productIds: string[]
+  productNames: string[]
   clientName: string
-  hearingInput: {
-    clientName?: string
-    serviceIds: string[]; challenge: string; budget: string
-    timeline: string
+  proposalRequest: {
+    freeText: string
+    clientName: string
+    purpose: string
+    productIds: string[]
+    quantity?: number
+    unitPriceMin?: number
+    unitPriceMax?: number
+    deliveryDate?: string
+    customization?: string
   }
-  markdownContent: string; createdAt: string
+  jsonContent: Record<string, unknown>
+  createdAt: string
 }
 
 function getProposals(): ProposalData[] {
@@ -262,9 +223,15 @@ function saveProposals(proposals: ProposalData[]) {
 app.post('/api/generate', async (req, res) => {
   try {
     const input = req.body as {
-      clientName?: string
-      serviceIds: string[]; challenge: string; budget: string
-      timeline: string
+      freeText: string
+      clientName: string
+      purpose: string
+      productIds: string[]
+      quantity?: number
+      unitPriceMin?: number
+      unitPriceMax?: number
+      deliveryDate?: string
+      customization?: string
     }
 
     const company = readJSON<CompanyData>('company.json')
@@ -273,33 +240,86 @@ app.post('/api/generate', async (req, res) => {
       return
     }
 
-    const allServices = getServices()
-    const selectedServices = allServices.filter((s) => input.serviceIds.includes(s.id))
-    if (selectedServices.length === 0) {
-      res.status(400).json({ error: 'サービスを1つ以上選択してください。' })
+    if (!input.productIds || input.productIds.length === 0) {
+      res.status(400).json({ error: '商品を1つ以上選択してください。' })
       return
     }
 
-    const prompt = buildProposalPrompt(company, selectedServices, {
+    // 選択された商品をカタログから取得
+    const allProducts = loadBloomingProducts()
+    const selectedProducts = allProducts.filter((p) => input.productIds.includes(p.id))
+    if (selectedProducts.length === 0) {
+      res.status(400).json({ error: '選択された商品が見つかりません。' })
+      return
+    }
+
+    const prompt = buildBloomingProposalPrompt(company, selectedProducts, {
       clientName: input.clientName,
-      challenge: input.challenge,
-      budget: input.budget,
-      timeline: input.timeline,
+      purpose: input.purpose,
+      quantity: input.quantity,
+      unitPriceMin: input.unitPriceMin,
+      unitPriceMax: input.unitPriceMax,
+      deliveryDate: input.deliveryDate,
+      customization: input.customization,
     })
 
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     })
-    const markdown = result.response.text()
+    const responseText = result.response.text()
+    const cleaned = responseText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+
+    let jsonContent: Record<string, unknown>
+    try {
+      jsonContent = JSON.parse(cleaned)
+    } catch {
+      // JSON解析失敗時はフォールバック
+      jsonContent = {
+        cover: {
+          title: `${input.clientName || '御社'} 向けノベルティご提案`,
+          subtitle: input.purpose || '',
+          clientName: input.clientName || '御社',
+          companyName: company.name,
+          contactPerson: company.contactPerson,
+          date: new Date().toLocaleDateString('ja-JP'),
+        },
+        greeting: responseText.slice(0, 200),
+        products: selectedProducts.map((p) => ({
+          productId: p.id,
+          name: p.name,
+          description: p.aiSummary || '',
+          imageUrl: p.thumbnailUrl || '',
+          specs: {
+            material: p.materials.join('、'),
+            size: p.dimensions || '',
+            colors: p.colors,
+            customization: input.customization || '',
+            unitPrice: `¥${p.price.toLocaleString()}`,
+            quantity: input.quantity ? `${input.quantity.toLocaleString()}個` : '',
+            deliveryDays: '',
+          },
+          recommendation: '',
+        })),
+        delivery: { timeline: '', notes: [] },
+        pricing: { summary: '' },
+        companyInfo: {
+          name: company.name,
+          description: company.description,
+          strengths: company.strengths,
+          contact: company.contactPerson,
+          email: company.email,
+        },
+      }
+    }
 
     const id = `prop_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
     const proposal: ProposalData = {
       id,
-      serviceIds: input.serviceIds,
-      serviceNames: selectedServices.map((s) => s.name),
+      productIds: input.productIds,
+      productNames: selectedProducts.map((p) => p.name),
       clientName: input.clientName || '御社',
-      hearingInput: input,
-      markdownContent: markdown,
+      proposalRequest: input,
+      jsonContent,
       createdAt: new Date().toISOString(),
     }
 
@@ -317,7 +337,7 @@ app.post('/api/generate', async (req, res) => {
 })
 
 app.get('/api/proposals', (_req, res) => {
-  const proposals = getProposals().map(({ markdownContent: _, ...rest }) => rest)
+  const proposals = getProposals().map(({ jsonContent: _, ...rest }) => rest)
   res.json(proposals)
 })
 
@@ -338,9 +358,9 @@ app.put('/api/proposals/:id', (req, res) => {
     res.status(404).json({ error: '提案書が見つかりません' })
     return
   }
-  const { markdownContent } = req.body as { markdownContent: string }
-  if (typeof markdownContent === 'string') {
-    proposals[idx].markdownContent = markdownContent
+  const { jsonContent } = req.body as { jsonContent: Record<string, unknown> }
+  if (jsonContent) {
+    proposals[idx].jsonContent = jsonContent
   }
   saveProposals(proposals)
   res.json(proposals[idx])
