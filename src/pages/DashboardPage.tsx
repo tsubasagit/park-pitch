@@ -105,6 +105,7 @@ export default function DashboardPage() {
             cartIds={cartIds}
             onToggleCart={toggleCart}
             onClearCart={clearCart}
+            proposalCount={proposals.length}
             onProposalGenerated={(p) => {
               setActiveProposal(p)
               setView('editor')
