@@ -1,15 +1,31 @@
 import { useState } from 'react'
-import { loginWithGoogle } from '../lib/firebase'
+import { loginWithGoogle, loginWithEmail } from '../lib/firebase'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
     setLoading(true)
     setError('')
     try {
       await loginWithGoogle()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ログインに失敗しました')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim() || !password) return
+    setLoading(true)
+    setError('')
+    try {
+      await loginWithEmail(email.trim(), password)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
     } finally {
@@ -26,8 +42,43 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Park-Pitch</h1>
         <p className="text-gray-500 text-sm mb-8">ノベルティ提案書ジェネレーター</p>
 
+        {/* メール/パスワードログイン */}
+        <form onSubmit={handleEmailLogin} className="space-y-3 mb-6">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="メールアドレス"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pitch-navy/30 focus:border-pitch-navy"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="パスワード"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pitch-navy/30 focus:border-pitch-navy"
+          />
+          <button
+            type="submit"
+            disabled={loading || !email.trim() || !password}
+            className="w-full px-6 py-3 bg-pitch-navy text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {loading ? 'ログイン中...' : 'ログイン'}
+          </button>
+        </form>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-3 text-gray-400">または</span>
+          </div>
+        </div>
+
+        {/* Googleログイン */}
         <button
-          onClick={handleLogin}
+          onClick={handleGoogleLogin}
           disabled={loading}
           className="w-full flex items-center justify-center gap-3 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
@@ -38,7 +89,7 @@ export default function LoginPage() {
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
           <span className="text-sm font-medium text-gray-700">
-            {loading ? 'ログイン中...' : 'Google でログイン'}
+            Google でログイン
           </span>
         </button>
 
