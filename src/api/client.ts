@@ -9,79 +9,85 @@ import type {
   BloomingRecommendation,
   ProposalJSON,
 } from '../types'
-import { auth } from '../lib/firebase'
+import { db } from '../lib/firebase'
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  query,
+  orderBy,
+} from 'firebase/firestore'
 
-const BASE = '/api'
+// ─── Company (Firestore direct) ──────────────────────
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const user = auth.currentUser
-  if (!user) return {}
-  const token = await user.getIdToken()
-  return { Authorization: `Bearer ${token}` }
-}
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const authHeaders = await getAuthHeaders()
-  const mergedHeaders = { ...authHeaders, ...(options?.headers as Record<string, string>) }
-  const res = await fetch(`${BASE}${path}`, { ...options, headers: mergedHeaders })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error((body as { error?: string }).error || `API error: ${res.status}`)
-  }
-  return res.json() as Promise<T>
-}
-
-// Company
 export async function getCompany(): Promise<Company | null> {
-  return request<Company | null>('/company')
+  const snap = await getDoc(doc(db, 'config', 'company'))
+  return snap.exists() ? (snap.data() as Company) : null
 }
 
 export async function saveCompany(data: Omit<Company, 'updatedAt'>): Promise<Company> {
-  return request<Company>('/company', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
+  const company = { ...data, updatedAt: new Date().toISOString() }
+  await setDoc(doc(db, 'config', 'company'), company)
+  return company as Company
 }
 
-// Parse Request (テキスト→構造化データ抽出 + 商品レコメンド)
-export async function parseRequest(text: string): Promise<{
-  parsed: ParsedRequest
-  recommendedProducts: (BloomingProduct & { rank: number; score: number; matchedTags: string[] })[]
-}> {
-  return request('/parse-request', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text }),
-  })
-}
-
-// Proposals
-export async function generateProposal(input: ProposalRequest): Promise<Proposal> {
-  return request<Proposal>('/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  })
-}
+// ─── Proposals (Firestore direct) ────────────────────
 
 export async function getProposals(): Promise<ProposalSummary[]> {
-  return request<ProposalSummary[]>('/proposals')
+  const snap = await getDocs(query(collection(db, 'proposals'), orderBy('createdAt', 'desc')))
+  return snap.docs.map((d) => {
+    const data = d.data()
+    return {
+      id: d.id,
+      clientName: data.clientName || '御社',
+      productNames: data.productNames || data.serviceNames || [],
+      createdAt: data.createdAt,
+    } as ProposalSummary
+  })
 }
 
 export async function getProposal(id: string): Promise<Proposal> {
-  return request<Proposal>(`/proposals/${id}`)
+  const snap = await getDoc(doc(db, 'proposals', id))
+  if (!snap.exists()) throw new Error('提案書が見つかりません')
+  return { id: snap.id, ...snap.data() } as Proposal
 }
 
 export async function updateProposal(id: string, jsonContent: ProposalJSON): Promise<Proposal> {
-  return request<Proposal>(`/proposals/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonContent }),
-  })
+  const ref = doc(db, 'proposals', id)
+  await updateDoc(ref, { jsonContent })
+  const snap = await getDoc(ref)
+  return { id: snap.id, ...snap.data() } as Proposal
 }
 
-// Blooming 商品カタログ
+// ─── Parse Request & Generate (server API — fallback to error) ───
+
+export async function parseRequest(_text: string): Promise<{
+  parsed: ParsedRequest
+  recommendedProducts: (BloomingProduct & { rank: number; score: number; matchedTags: string[] })[]
+}> {
+  // AI解析はサーバーAPI経由（Cloud Functions利用不可の場合はエラー）
+  throw new Error('AI解析機能は現在サーバーセットアップ中です。テキスト検索をご利用ください。')
+}
+
+export async function generateProposal(_input: ProposalRequest): Promise<Proposal> {
+  throw new Error('提案書生成機能は現在サーバーセットアップ中です。')
+}
+
+// ─── Blooming Products (Firestore direct) ────────────
+
+let cachedProducts: BloomingProduct[] | null = null
+
+async function loadAllProducts(): Promise<BloomingProduct[]> {
+  if (cachedProducts) return cachedProducts
+  const snap = await getDocs(collection(db, 'blooming_products'))
+  cachedProducts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as BloomingProduct))
+  return cachedProducts
+}
+
 export async function getBloomingProducts(params?: {
   page?: number
   perPage?: number
@@ -98,20 +104,47 @@ export async function getBloomingProducts(params?: {
   page: number
   perPage: number
 }> {
-  const sp = new URLSearchParams()
-  if (params?.page != null) sp.set('page', String(params.page))
-  if (params?.perPage != null) sp.set('perPage', String(params.perPage))
-  if (params?.q) sp.set('q', params.q)
-  if (params?.keywords) sp.set('keywords', params.keywords)
-  if (params?.category) sp.set('category', params.category)
-  if (params?.brand) sp.set('brand', params.brand)
-  if (params?.budgetMin != null) sp.set('budgetMin', String(params.budgetMin))
-  if (params?.budgetMax != null) sp.set('budgetMax', String(params.budgetMax))
-  if (params?.sort) sp.set('sort', params.sort)
-  const qs = sp.toString()
-  return request<{ items: BloomingProduct[]; total: number; page: number; perPage: number }>(
-    `/blooming/products${qs ? `?${qs}` : ''}`,
-  )
+  const page = params?.page ?? 1
+  const perPage = params?.perPage ?? 20
+
+  let products = await loadAllProducts()
+
+  // フィルタ
+  if (params?.category) products = products.filter((p) => p.category === params.category)
+  if (params?.brand) products = products.filter((p) => p.brand === params.brand)
+  if (params?.budgetMin != null) products = products.filter((p) => p.price >= params.budgetMin!)
+  if (params?.budgetMax != null) products = products.filter((p) => p.price <= params.budgetMax!)
+
+  // テキスト検索
+  const q = params?.q?.trim()
+  if (q) {
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean)
+    products = products.filter((p) => {
+      const name = (p.name || '').toLowerCase()
+      const summary = (p.aiSummary || '').toLowerCase()
+      const cat = (p.category || '').toLowerCase()
+      const br = (p.brand || '').toLowerCase()
+      const tags = [...(p.occasionTags || []), ...(p.useCaseTags || [])].map((t) => t.toLowerCase())
+      return terms.every(
+        (t) => name.includes(t) || summary.includes(t) || cat.includes(t) || br.includes(t) || tags.some((tag) => tag.includes(t)),
+      )
+    })
+  }
+
+  // ソート
+  const sort = params?.sort || 'giftScore'
+  if (sort === 'price-asc') {
+    products.sort((a, b) => a.price - b.price)
+  } else if (sort === 'price-desc') {
+    products.sort((a, b) => b.price - a.price)
+  } else {
+    products.sort((a, b) => (b.giftScore ?? 0) - (a.giftScore ?? 0))
+  }
+
+  const total = products.length
+  const start = (page - 1) * perPage
+  const items = products.slice(start, start + perPage)
+  return { items, total, page, perPage }
 }
 
 export async function addBloomingProduct(data: {
@@ -127,15 +160,36 @@ export async function addBloomingProduct(data: {
   giftScore?: number
   thumbnailUrl?: string
 }): Promise<BloomingProduct> {
-  return request<BloomingProduct>('/blooming/products', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
+  const product = {
+    source: 'custom',
+    sourceUrl: '',
+    name: data.name,
+    brand: data.brand,
+    price: data.price,
+    materials: data.materials || [],
+    colors: data.colors || [],
+    category: data.category || '',
+    gender: '',
+    collections: [],
+    occasionTags: data.occasionTags || [],
+    useCaseTags: data.useCaseTags || [],
+    priceSegment: data.price <= 770 ? 'budget' : data.price <= 1980 ? 'mid' : data.price <= 3300 ? 'premium' : 'luxury',
+    giftScore: data.giftScore ?? 5,
+    seasonality: [],
+    aiSummary: data.aiSummary || '',
+    thumbnailUrl: data.thumbnailUrl || '',
+    imageUrls: [],
+    scrapedAt: new Date().toISOString(),
+  }
+  const ref = await addDoc(collection(db, 'blooming_products'), product)
+  cachedProducts = null // キャッシュ無効化
+  return { id: ref.id, ...product } as BloomingProduct
 }
 
 export async function getBloomingProduct(id: string): Promise<BloomingProduct> {
-  return request<BloomingProduct>(`/blooming/products/${encodeURIComponent(id)}`)
+  const snap = await getDoc(doc(db, 'blooming_products', id))
+  if (!snap.exists()) throw new Error('商品が見つかりません')
+  return { id: snap.id, ...snap.data() } as BloomingProduct
 }
 
 export async function getBloomingFilters(): Promise<{
@@ -143,21 +197,54 @@ export async function getBloomingFilters(): Promise<{
   brands: string[]
   occasions: string[]
 }> {
-  return request('/blooming/filters')
+  const products = await loadAllProducts()
+  const categories = [...new Set(products.map((p) => p.category).filter(Boolean))].sort()
+  const brands = [...new Set(products.map((p) => p.brand).filter(Boolean))].sort()
+  const occasions = [...new Set(products.flatMap((p) => p.occasionTags || []).filter(Boolean))].sort()
+  return { categories, brands, occasions }
 }
 
-export async function getBloomingRecommendations(limit?: number): Promise<BloomingRecommendation[]> {
-  const q = limit != null ? `?limit=${limit}` : ''
-  return request<BloomingRecommendation[]>(`/blooming/recommendations${q}`)
+export async function getBloomingRecommendations(_limit?: number): Promise<BloomingRecommendation[]> {
+  return []
 }
 
 export async function searchBloomingRecommend(body: {
   query?: string
   filters?: BloomingSearchFilters
 }): Promise<BloomingRecommendation> {
-  return request<BloomingRecommendation>('/blooming/recommend', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const q = body.query || ''
+  const products = await loadAllProducts()
+
+  // スコアリング
+  const terms = q.trim() ? q.trim().toLowerCase().split(/\s+/) : []
+  const scored = products.map((p) => {
+    let score = (p.giftScore ?? 5) / 10
+    const matchedTags: string[] = []
+    for (const t of terms) {
+      if ((p.name || '').toLowerCase().includes(t)) { score += 0.2; matchedTags.push(p.name) }
+      if ((p.aiSummary || '').toLowerCase().includes(t)) score += 0.15
+      for (const tag of p.occasionTags || []) {
+        if (tag.toLowerCase().includes(t)) { score += 0.1; matchedTags.push(tag) }
+      }
+    }
+    return { product: p, score: Math.min(1, score), matchedTags: [...new Set(matchedTags)].slice(0, 5) }
   })
+  scored.sort((a, b) => b.score - a.score)
+
+  const results = scored.slice(0, 10).map((s, i) => ({
+    productId: s.product.id,
+    product: s.product,
+    rank: i + 1,
+    score: s.score,
+    reason: s.product.aiSummary || `${s.product.brand}の${s.product.category}です。`,
+    matchedTags: s.matchedTags,
+  }))
+
+  return {
+    id: `rec_${Date.now()}`,
+    query: q,
+    filters: body.filters || {},
+    results,
+    createdAt: new Date().toISOString(),
+  }
 }

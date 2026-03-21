@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions";
+import * as v1 from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import express, {type Request, type Response, type NextFunction} from "express";
 import cors from "cors";
@@ -34,7 +34,7 @@ app.use("/api", requireAuth);
 // Gemini
 function getModel() {
   const apiKey = process.env.GEMINI_API_KEY ||
-    functions.config().gemini?.api_key || "";
+    v1.config().gemini?.api_key || "";
   if (!apiKey) throw new Error("GEMINI_API_KEY が未設定です");
   const genAI = new GoogleGenerativeAI(apiKey);
   const modelId = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -572,4 +572,4 @@ app.get("/api/blooming/recommendations", (_req, res) => {
 });
 
 // Export
-export const api = functions.https.onRequest(app);
+export const api = v1.https.onRequest(app);
