@@ -5,6 +5,7 @@ import EditorView from '../components/EditorView'
 import CatalogView from '../components/blooming/BloomingHomeView'
 import CompanySlideOver from '../components/CompanySlideOver'
 import { getCompany, getProposals, getProposal } from '../api/client'
+import { logout } from '../lib/firebase'
 import type { Company, Proposal, ProposalSummary } from '../types'
 
 export default function DashboardPage() {
@@ -80,6 +81,7 @@ export default function DashboardPage() {
         onOpenSettings={() => setShowSlideOver(true)}
         onGoHome={handleGoHome}
         onGoCatalog={handleGoCatalog}
+        onLogout={logout}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">

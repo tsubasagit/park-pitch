@@ -11,6 +11,7 @@ interface IconSidebarProps {
   onOpenSettings: () => void
   onGoHome: () => void
   onGoCatalog: () => void
+  onLogout: () => void
 }
 
 export default function IconSidebar({
@@ -21,6 +22,7 @@ export default function IconSidebar({
   onOpenSettings,
   onGoHome,
   onGoCatalog,
+  onLogout,
 }: IconSidebarProps) {
   return (
     <aside className="w-14 bg-white border-r border-gray-200 flex flex-col items-center py-3 gap-1 shrink-0 print:hidden">
@@ -85,6 +87,17 @@ export default function IconSidebar({
         }
         label="設定"
         onClick={onOpenSettings}
+      />
+
+      {/* Logout */}
+      <SidebarIcon
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        }
+        label="ログアウト"
+        onClick={onLogout}
       />
     </aside>
   )
