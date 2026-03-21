@@ -352,5 +352,224 @@ app.put("/api/proposals/:id", async (req, res) => {
   res.json({id: updated.id, ...updated.data()});
 });
 
+// ─── Blooming Products (Firestore) ───────────────────
+
+interface BloomingProduct {
+  id: string;
+  source: string;
+  sourceUrl: string;
+  name: string;
+  brand: string;
+  price: number;
+  materials: string[];
+  colors: string[];
+  category: string;
+  gender: string;
+  collections: string[];
+  occasionTags: string[];
+  useCaseTags: string[];
+  priceSegment: string;
+  giftScore: number;
+  seasonality: string[];
+  aiSummary: string;
+  thumbnailUrl: string;
+  imageUrls: string[];
+  dimensions?: string;
+  scrapedAt: string;
+}
+
+// メモリキャッシュ（Cold start 対策）
+let cachedProducts: BloomingProduct[] | null = null;
+let cacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5分
+
+async function loadProducts(): Promise<BloomingProduct[]> {
+  if (cachedProducts && Date.now() - cacheTime < CACHE_TTL) {
+    return cachedProducts;
+  }
+  const snap = await db.collection("blooming_products").get();
+  cachedProducts = snap.docs.map((d) => ({id: d.id, ...d.data()} as BloomingProduct));
+  cacheTime = Date.now();
+  return cachedProducts;
+}
+
+// GET /api/blooming/products
+app.get("/api/blooming/products", async (req, res) => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const perPage = Math.min(500, Math.max(1, Number(req.query.perPage) || 20));
+    const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    const category = typeof req.query.category === "string" ? req.query.category.trim() : "";
+    const brand = typeof req.query.brand === "string" ? req.query.brand.trim() : "";
+    const budgetMin = req.query.budgetMin ? Number(req.query.budgetMin) : undefined;
+    const budgetMax = req.query.budgetMax ? Number(req.query.budgetMax) : undefined;
+    const sort = typeof req.query.sort === "string" ? req.query.sort.trim() : "giftScore";
+
+    let products = await loadProducts();
+
+    // フィルタ
+    if (category) products = products.filter((p) => p.category === category);
+    if (brand) products = products.filter((p) => p.brand === brand);
+    if (budgetMin != null && !isNaN(budgetMin)) products = products.filter((p) => p.price >= budgetMin);
+    if (budgetMax != null && !isNaN(budgetMax)) products = products.filter((p) => p.price <= budgetMax);
+
+    // テキスト検索
+    if (q) {
+      const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+      products = products.filter((p) => {
+        const name = (p.name || "").toLowerCase();
+        const summary = (p.aiSummary || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase();
+        const br = (p.brand || "").toLowerCase();
+        const tags = [...(p.occasionTags || []), ...(p.useCaseTags || [])].map((t) => t.toLowerCase());
+        return terms.every(
+          (t) => name.includes(t) || summary.includes(t) || cat.includes(t) || br.includes(t) || tags.some((tag) => tag.includes(t)),
+        );
+      });
+    }
+
+    // ソート
+    if (sort === "price-asc") {
+      products.sort((a, b) => a.price - b.price);
+    } else if (sort === "price-desc") {
+      products.sort((a, b) => b.price - a.price);
+    } else {
+      products.sort((a, b) => (b.giftScore ?? 0) - (a.giftScore ?? 0));
+    }
+
+    const total = products.length;
+    const start = (page - 1) * perPage;
+    const items = products.slice(start, start + perPage);
+    res.json({items, total, page, perPage});
+  } catch (err) {
+    console.error("[GET /api/blooming/products]", err);
+    res.status(500).json({error: "商品の取得に失敗しました"});
+  }
+});
+
+// GET /api/blooming/products/:id
+app.get("/api/blooming/products/:id", async (req, res) => {
+  try {
+    const doc = await db.collection("blooming_products").doc(req.params.id).get();
+    if (!doc.exists) {
+      res.status(404).json({error: "商品が見つかりません"});
+      return;
+    }
+    res.json({id: doc.id, ...doc.data()});
+  } catch (err) {
+    console.error("[GET /api/blooming/products/:id]", err);
+    res.status(500).json({error: "商品の取得に失敗しました"});
+  }
+});
+
+// POST /api/blooming/products
+app.post("/api/blooming/products", async (req, res) => {
+  try {
+    const body = req.body;
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const br = typeof body.brand === "string" ? body.brand.trim() : "";
+    const price = typeof body.price === "number" ? body.price : NaN;
+
+    if (!name || !br || isNaN(price)) {
+      res.status(400).json({error: "name, brand, price は必須です"});
+      return;
+    }
+
+    const product: Omit<BloomingProduct, "id"> = {
+      source: "custom",
+      sourceUrl: "",
+      name,
+      brand: br,
+      price,
+      materials: Array.isArray(body.materials) ? body.materials : [],
+      colors: Array.isArray(body.colors) ? body.colors : [],
+      category: typeof body.category === "string" ? body.category : "",
+      gender: typeof body.gender === "string" ? body.gender : "",
+      collections: [],
+      occasionTags: Array.isArray(body.occasionTags) ? body.occasionTags : [],
+      useCaseTags: Array.isArray(body.useCaseTags) ? body.useCaseTags : [],
+      priceSegment: price <= 770 ? "budget" : price <= 1980 ? "mid" : price <= 3300 ? "premium" : "luxury",
+      giftScore: typeof body.giftScore === "number" ? body.giftScore : 5,
+      seasonality: [],
+      aiSummary: typeof body.aiSummary === "string" ? body.aiSummary : "",
+      thumbnailUrl: typeof body.thumbnailUrl === "string" ? body.thumbnailUrl : "",
+      imageUrls: Array.isArray(body.imageUrls) ? body.imageUrls : [],
+      scrapedAt: new Date().toISOString(),
+    };
+
+    const ref = await db.collection("blooming_products").add(product);
+    cachedProducts = null; // キャッシュ無効化
+    res.status(201).json({id: ref.id, ...product});
+  } catch (err) {
+    console.error("[POST /api/blooming/products]", err);
+    res.status(500).json({error: "商品の追加に失敗しました"});
+  }
+});
+
+// GET /api/blooming/filters
+app.get("/api/blooming/filters", async (_req, res) => {
+  try {
+    const products = await loadProducts();
+    const categories = [...new Set(products.map((p) => p.category).filter(Boolean))].sort();
+    const brands = [...new Set(products.map((p) => p.brand).filter(Boolean))].sort();
+    const occasions = [...new Set(products.flatMap((p) => p.occasionTags || []).filter(Boolean))].sort();
+    res.json({categories, brands, occasions});
+  } catch (err) {
+    console.error("[GET /api/blooming/filters]", err);
+    res.status(500).json({error: "フィルタの取得に失敗しました"});
+  }
+});
+
+// POST /api/blooming/recommend
+app.post("/api/blooming/recommend", async (req, res) => {
+  try {
+    const body = req.body as {query?: string; filters?: Record<string, unknown>};
+    const query = typeof body.query === "string" ? body.query : "";
+    let products = await loadProducts();
+
+    // フィルタ適用
+    const f = body.filters || {};
+    if (f.category) products = products.filter((p) => p.category === f.category);
+    if (f.budgetMin) products = products.filter((p) => p.price >= Number(f.budgetMin));
+    if (f.budgetMax) products = products.filter((p) => p.price <= Number(f.budgetMax));
+
+    // スコアリング
+    const terms = query.trim() ? query.trim().toLowerCase().split(/\s+/) : [];
+    const scored = products.map((p) => {
+      let score = (p.giftScore ?? 5) / 10;
+      const matchedTags: string[] = [];
+      for (const t of terms) {
+        if ((p.name || "").toLowerCase().includes(t)) { score += 0.2; matchedTags.push(p.name); }
+        if ((p.aiSummary || "").toLowerCase().includes(t)) { score += 0.15; }
+        for (const tag of p.occasionTags || []) {
+          if (tag.toLowerCase().includes(t)) { score += 0.1; matchedTags.push(tag); }
+        }
+      }
+      return {product: p, score: Math.min(1, score), matchedTags: [...new Set(matchedTags)].slice(0, 5)};
+    });
+    scored.sort((a, b) => b.score - a.score);
+
+    const results = scored.slice(0, 10).map((s, i) => ({
+      productId: s.product.id,
+      product: s.product,
+      rank: i + 1,
+      score: s.score,
+      reason: s.product.aiSummary || `${s.product.brand}の${s.product.category}です。`,
+      matchedTags: s.matchedTags,
+    }));
+
+    const id = `rec_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    res.json({id, query, filters: f, results, createdAt: new Date().toISOString()});
+  } catch (err) {
+    console.error("[POST /api/blooming/recommend]", err);
+    res.status(500).json({error: "レコメンドに失敗しました"});
+  }
+});
+
+// GET /api/blooming/recommendations (stub)
+app.get("/api/blooming/recommendations", (_req, res) => {
+  res.json([]);
+});
+
 // Export
 export const api = functions.https.onRequest(app);
