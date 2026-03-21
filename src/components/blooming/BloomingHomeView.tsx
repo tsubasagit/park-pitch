@@ -220,7 +220,7 @@ export default function BloomingHomeView({ cartIds, onToggleCart, onGoHome }: Bl
                         className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
                           inCart
                             ? 'bg-pitch-navy text-white shadow-md'
-                            : 'bg-white/90 text-gray-400 border border-gray-200 opacity-0 group-hover:opacity-100 hover:text-pitch-navy hover:border-pitch-navy'
+                            : 'bg-white/90 text-gray-500 border border-gray-300 shadow-sm hover:text-pitch-navy hover:border-pitch-navy'
                         }`}
                         title={inCart ? 'カートから削除' : 'カートに追加'}
                       >
