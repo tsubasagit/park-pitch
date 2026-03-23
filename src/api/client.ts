@@ -246,12 +246,13 @@ ${productText}
   const jsonText = genResult.response.text().replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
   const jsonContent = JSON.parse(jsonText) as ProposalJSON
 
-  // Firestoreに保存
+  // Firestoreに保存（undefinedフィールドを除去 — Firestoreはundefinedを受け付けない）
+  const cleanInput = JSON.parse(JSON.stringify(input)) as ProposalRequest
   const proposal = {
     productIds: input.productIds,
     productNames: selectedProducts.map((p) => p.name),
     clientName: input.clientName || '御社',
-    proposalRequest: input,
+    proposalRequest: cleanInput,
     jsonContent,
     createdAt: new Date().toISOString(),
   }
