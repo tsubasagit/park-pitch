@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Park-Pitch 想定Q&A - サンマリノ様ご説明用</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1e3a5f;
+      --navy-light: #2d4a6f;
+      --navy-bg: #f0f4f8;
+      --orange: #e85d04;
+      --orange-hover: #d35400;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --text: #1e293b;
+      --text-sub: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 2.5rem 2rem 2rem;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      display: block;
+      height: 4px;
+      background: var(--orange);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: var(--orange);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+    .header-text { flex: 1; }
+    .header-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .header-sub {
+      font-size: 0.95rem;
+      opacity: 0.85;
+      margin-top: 0.2rem;
+    }
+    .header-meta {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .header-date {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+    .badge-confidential {
+      display: inline-block;
+      background: var(--orange);
+      color: var(--white);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      margin-top: 0.4rem;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Container ── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+    }
+    .toc h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 2rem;
+    }
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .toc-item a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .toc-item a:hover { color: var(--orange); }
+    .toc-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--orange);
+      color: var(--white);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Section ── */
+    .qa-section {
+      margin-bottom: 2.5rem;
+    }
+    .qa-section > h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 3px solid var(--navy);
+    }
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--orange);
+      color: var(--white);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Q&A Item ── */
+    .qa-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.8rem;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .qa-item summary {
+      padding: 1rem 1.2rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--navy);
+      border-left: 4px solid var(--navy);
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .qa-item summary:hover {
+      background: var(--navy-bg);
+    }
+    .qa-item summary::-webkit-details-marker { display: none; }
+    .qa-item summary::before {
+      content: 'Q.';
+      color: var(--orange);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .qa-item summary::after {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--text-sub);
+      border-bottom: 2px solid var(--text-sub);
+      transform: rotate(45deg);
+      margin-left: auto;
+      margin-top: 0.3rem;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    .qa-item[open] summary::after {
+      transform: rotate(-135deg);
+    }
+    .answer {
+      padding: 1rem 1.2rem 1.2rem 2.4rem;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.92rem;
+      line-height: 1.9;
+    }
+    .answer p { margin-bottom: 0.6rem; }
+    .answer p:last-child { margin-bottom: 0; }
+    .answer strong { color: var(--navy); }
+    .answer ul {
+      margin: 0.4rem 0 0.6rem 1.2rem;
+      list-style: none;
+    }
+    .answer ul li {
+      position: relative;
+      padding-left: 1rem;
+      margin-bottom: 0.3rem;
+    }
+    .answer ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.65em;
+      width: 6px;
+      height: 6px;
+      background: var(--orange);
+      border-radius: 50%;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 2px solid var(--border);
+      color: var(--text-sub);
+      font-size: 0.82rem;
+    }
+    .footer-company {
+      font-weight: 600;
+      color: var(--navy);
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; text-align: center; gap: 1rem; }
+      .header-meta { text-align: center; }
+      .toc-grid { grid-template-columns: 1fr; }
+      .container { padding: 1.5rem 1rem 2rem; }
+      .header-title { font-size: 1.3rem; }
+    }
+
+    /* ── Print ── */
+    @media print {
+      @page { margin: 1.5cm; size: A4; }
+      body { background: white; font-size: 12px; }
+      .header { padding: 1.5rem; }
+      .header::after { display: none; }
+      .toc { break-after: page; }
+      .qa-section { break-inside: avoid; }
+      .qa-item { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+      .qa-item summary::after { display: none; }
+      .qa-item[open] summary { border-bottom: 1px solid #ccc; }
+      .badge-confidential { border: 1px solid var(--orange); }
+    }
+
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">P</div>
+    <div class="header-text">
+      <div class="header-title">Park-Pitch 想定Q&A</div>
+      <div class="header-sub">サンマリノ様 ご説明用資料</div>
+    </div>
+    <div class="header-meta">
+      <div class="header-date">2026年3月22日</div>
+      <div class="badge-confidential">CONFIDENTIAL</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ===== TOC ===== -->
+  <nav class="toc">
+    <h2>目次</h2>
+    <div class="toc-grid">
+      <div class="toc-item"><span class="toc-num">1</span><a href="#s1">サービス概要・目的</a></div>
+      <div class="toc-item"><span class="toc-num">2</span><a href="#s2">技術・AI</a></div>
+      <div class="toc-item"><span class="toc-num">3</span><a href="#s3">セキュリティ・データ管理</a></div>
+      <div class="toc-item"><span class="toc-num">4</span><a href="#s4">導入・運用</a></div>
+      <div class="toc-item"><span class="toc-num">5</span><a href="#s5">料金・コスト</a></div>
+      <div class="toc-item"><span class="toc-num">6</span><a href="#s6">競合・差別化</a></div>
+      <div class="toc-item"><span class="toc-num">7</span><a href="#s7">将来展望・拡張性</a></div>
+    </div>
+  </nav>
+
+  <!-- ===== 1. サービス概要・目的 ===== -->
+  <section id="s1" class="qa-section">
+    <h2><span class="section-num">1</span>サービス概要・目的</h2>
+
+    <details open class="qa-item">
+      <summary>Park-Pitchとは何ですか？一言で説明してください。</summary>
+      <div class="answer">
+        <p>B2B営業担当者向けの<strong>AI提案書自動生成ツール</strong>です。6,300点以上の商品カタログから顧客要件に合った商品を自動選定し、プロフェッショナルな提案書をワンクリックで生成するSaaSサービスです。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>なぜこのサービスが必要なのですか？既存のツールでは対応できないのですか？</summary>
+      <div class="answer">
+        <p>Gamma、Canva、ChatGPTなどの汎用ツールは美しい資料を作れますが、<strong>「自社の6,300点の商品カタログから最適な商品を選び、仕様・価格・名入れ方法まで正確に記載した提案書を自動生成する」</strong>ことはできません。</p>
+        <p>Park-Pitchは商品データベースと提案ロジックが一体化している点が本質的な差別化であり、日本市場ではほぼブルーオーシャンの領域です。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>現在の開発ステータスと顧客事例は？</summary>
+      <div class="answer">
+        <p><strong>MVP（Minimum Viable Product）段階</strong>です。現在アクシスグループ（axis-gp.com、徳島拠点・116名・4拠点・8法人の士業系ファーム）で実証検証中です。</p>
+        <p>「テキスト入力 + 商品カタログ = 提案書自動生成」の最小構成で価値検証に集中しています。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>サンマリノの営業チームにとって、具体的にどのようなメリットがありますか？</summary>
+      <div class="answer">
+        <ul>
+          <li><strong>提案書作成時間の大幅短縮</strong>：従来30〜60分 → 数分</li>
+          <li><strong>品質の均一化</strong>：営業担当のスキルに依存しない提案書品質</li>
+          <li><strong>商品知識の補完</strong>：6,300点の商品知識をAIが補完</li>
+          <li><strong>印刷対応</strong>：A4最適化されたレイアウトで即PDF化可能</li>
+        </ul>
+        <p>特に<strong>新人営業でもベテラン並みの提案書が即座に作成可能</strong>になる点が最大のメリットです。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>AppTalentHub株式会社とはどのような会社ですか？</summary>
+      <div class="answer">
+        <p>AI/DX領域のプロダクト開発会社です。「Company as a Filesystem」をCredoに掲げ、企業の情報・プロセスを構造化する技術力が強みです。</p>
+        <p>React / TypeScript / Firebase / Gemini APIなどモダン技術スタックで迅速なプロダクト開発を行っています。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 2. 技術・AI ===== -->
+  <section id="s2" class="qa-section">
+    <h2><span class="section-num">2</span>技術・AI</h2>
+
+    <details open class="qa-item">
+      <summary>どのAI技術を使用していますか？</summary>
+      <div class="answer">
+        <p><strong>Google Gemini API</strong>（モデル: gemini-2.5-flash）を使用しています。AIは2段階で活用されます。</p>
+        <ul>
+          <li><strong>テキスト解析</strong>：自然言語入力から企業名・用途・数量・単価・納期・カスタマイズ要望を自動抽出</li>
+          <li><strong>提案書コンテンツ生成</strong>：抽出した要件と商品データから構造化された提案書を生成</li>
+        </ul>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>AI提案書の精度や品質はどの程度ですか？</summary>
+      <div class="answer">
+        <p>商品仕様（素材・サイズ・色展開・価格）は<strong>カタログデータから正確に引用</strong>するため誤りはありません。AIが生成するのは挨拶文、おすすめポイント、比較コメントなどの「文章部分」です。</p>
+        <p>生成後にサイドパネルのチャット入力で「もっとフォーマルに」「価格をもう少し強調して」などの<strong>修正指示が可能</strong>で、何度でも再生成できます。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>商品レコメンドのロジックはどうなっていますか？</summary>
+      <div class="answer">
+        <p>3段階のレコメンドプロセスを採用しています。</p>
+        <ul>
+          <li><strong>Step 1 — キーワード抽出</strong>：フリーテキストからAIが用途・商品カテゴリのキーワードを抽出</li>
+          <li><strong>Step 2 — カタログ検索</strong>：カテゴリ・ブランド・価格帯・用途タグ・シーズンでフィルタリング</li>
+          <li><strong>Step 3 — スコアリング</strong>：giftScore + テキスト一致度で最適商品をランキング</li>
+        </ul>
+        <p>上位10件を自動推薦し、営業が確認・差し替えした上で提案書を生成します。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>提案書の出力形式は？</summary>
+      <div class="answer">
+        <p>構造化JSON形式でAIが生成し、Reactコンポーネントでリアルタイムレンダリングします。構成は以下の<strong>6セクション</strong>です。</p>
+        <ul>
+          <li>表紙</li>
+          <li>ご挨拶</li>
+          <li>商品詳細（1商品1ページ、仕様・画像付き）</li>
+          <li>比較表</li>
+          <li>納品スケジュール・見積</li>
+          <li>会社紹介</li>
+        </ul>
+        <p>ブラウザの印刷機能でPDF化可能（A4最適化済み、ページ分割対応）です。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>「おまかせモード」とは何ですか？</summary>
+      <div class="answer">
+        <p>営業担当が自然文で要件を入力するだけで、AIが自動的にすべてを処理するモードです。</p>
+        <p>例：<em>「A社向けに夏のキャンペーンノベルティ、予算250〜300円で19,300個、保冷バッグかエコバッグ希望」</em></p>
+        <p>この一文から<strong>企業名・用途・数量・予算・納期を自動解析</strong>し、最適商品をレコメンドします。構造化フォームの手入力が不要で、最も高速な操作フローです。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 3. セキュリティ・データ管理 ===== -->
+  <section id="s3" class="qa-section">
+    <h2><span class="section-num">3</span>セキュリティ・データ管理</h2>
+
+    <details open class="qa-item">
+      <summary>データはどこに保存されますか？</summary>
+      <div class="answer">
+        <p><strong>Firebase（Google Cloud Platform）上のFirestoreデータベース</strong>に保存されます。</p>
+        <ul>
+          <li>商品カタログ（blooming_products）</li>
+          <li>提案書（proposals）</li>
+          <li>会社設定（config）</li>
+        </ul>
+        <p>Googleのエンタープライズグレードのインフラで運用されるため、可用性・耐久性ともに高い水準です。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>認証・アクセス制御はどうなっていますか？</summary>
+      <div class="answer">
+        <p><strong>Firebase Authentication</strong>を採用しています。</p>
+        <ul>
+          <li>メール/パスワード認証</li>
+          <li>Googleアカウント認証（OAuth 2.0）</li>
+        </ul>
+        <p>Firestoreセキュリティルールにより、<strong>認証済みユーザーのみ</strong>がデータにアクセス可能です。未認証のリクエストはすべてブロックされます。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>入力した顧客情報や提案書データの取り扱いは？</summary>
+      <div class="answer">
+        <p>顧客情報（企業名・要件）と生成された提案書はFirestoreに暗号化保存され、認証済みユーザーのみがアクセスできます。</p>
+        <p>Gemini APIへの送信データは<strong>Google Cloud AI利用規約に準拠</strong>し、AIモデルの学習データとして使用されません。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>商品カタログデータの管理と更新はどうなりますか？</summary>
+      <div class="answer">
+        <p>現在<strong>6,300点以上</strong>のブルーミング中西商品データを構造化管理しています。各商品は20以上のフィールド（商品名・ブランド・価格・素材・サイズ・色・カテゴリ・用途タグ・AIサマリー等）で管理されます。</p>
+        <p>AIエンリッチメント機能により、<strong>タグ付け・ギフトスコア算出を自動化</strong>しており、新商品追加時の運用負荷を最小限に抑えています。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 4. 導入・運用 ===== -->
+  <section id="s4" class="qa-section">
+    <h2><span class="section-num">4</span>導入・運用</h2>
+
+    <details open class="qa-item">
+      <summary>導入にかかる期間と手順は？</summary>
+      <div class="answer">
+        <p><strong>最短1週間</strong>で導入可能です。</p>
+        <ul>
+          <li><strong>Step 1</strong>：アカウント発行（Firebase Auth設定）</li>
+          <li><strong>Step 2</strong>：会社プロフィール設定（社名・理念・強み・担当者情報）</li>
+          <li><strong>Step 3</strong>：商品カタログ確認・カスタマイズ</li>
+        </ul>
+        <p>会社プロフィールは初回ログイン時にオンボーディング画面が自動表示されるため、直感的に設定できます。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>営業担当者のITリテラシーが低くても使えますか？</summary>
+      <div class="answer">
+        <p><strong>はい。</strong>操作は「テキスト入力 → 商品選択 → 生成ボタン」の<strong>3ステップ</strong>です。</p>
+        <p>おまかせモードなら自然文を入力するだけ。タグフィルタ（用途・シーン・予算・シーズンなど）でのカタログ閲覧も直感的なUI設計です。生成後の修正もチャット形式で「もう少しカジュアルに」などと入力するだけで再生成されます。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>複数の営業担当者で同時利用できますか？</summary>
+      <div class="answer">
+        <p><strong>はい。</strong>Firebase Authenticationにより各ユーザーが個別にログインし、提案書は共有データベースに保存されます。</p>
+        <p>現在のMVPでは全ユーザーが同一の会社プロフィール・商品カタログを共有する設計です。将来的には<strong>チーム共有・権限管理機能</strong>の追加を予定しています。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>提案書のカスタマイズ（テンプレート変更等）は可能ですか？</summary>
+      <div class="answer">
+        <p>現在のMVPでは提案書テンプレートは固定（表紙→挨拶→商品詳細→比較→見積→会社紹介の6セクション構成）です。</p>
+        <p>サンマリノ様の要件に合わせた<strong>テンプレートカスタマイズは開発ロードマップに含まれて</strong>います。また、生成後にチャット入力で内容の修正・調整が可能です。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 5. 料金・コスト ===== -->
+  <section id="s5" class="qa-section">
+    <h2><span class="section-num">5</span>料金・コスト</h2>
+
+    <details open class="qa-item">
+      <summary>料金体系はどのようになっていますか？</summary>
+      <div class="answer">
+        <p>現在MVP段階のため、具体的な料金プランは協議中です。想定モデルとしては<strong>月額SaaS形式</strong>（ユーザー数ベースまたは提案書生成数ベース）を検討しています。</p>
+        <p>サンマリノ様には<strong>先行導入パートナーとして特別条件</strong>をご提案する用意があります。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>ランニングコストは何がかかりますか？</summary>
+      <div class="answer">
+        <ul>
+          <li><strong>Gemini API利用料</strong>：提案書1件あたり数円〜十数円程度</li>
+          <li><strong>Firebase Hosting / Firestore</strong>：Google Cloud従量課金（少量利用であれば無料枠内）</li>
+          <li><strong>サービス月額料金</strong>：別途お見積もり</li>
+        </ul>
+        <p>自社サーバー構築や専任IT担当者は不要です。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>初期費用はかかりますか？</summary>
+      <div class="answer">
+        <p>基本的に<strong>ゼロまたは最小限</strong>です。クラウドベースのSaaSなので、サーバー購入やソフトウェアインストールは不要です。</p>
+        <p>カスタマイズ要件がある場合は別途お見積もりします。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>ROI（投資対効果）はどのように測定できますか？</summary>
+      <div class="answer">
+        <p>定量的指標として以下を測定できます。</p>
+        <ul>
+          <li><strong>提案書作成時間の短縮</strong>：時間単価 × 削減時間 × 件数/月</li>
+          <li><strong>成約率の変化</strong>：提案書品質向上による受注率の向上</li>
+          <li><strong>新人営業の立ち上がり期間短縮</strong>：教育コストの削減</li>
+        </ul>
+        <p>例えば月50件の提案書を作成し、1件あたり30分短縮できれば<strong>月25時間の工数削減</strong>です。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 6. 競合・差別化 ===== -->
+  <section id="s6" class="qa-section">
+    <h2><span class="section-num">6</span>競合・差別化</h2>
+
+    <details open class="qa-item">
+      <summary>Gamma、Canva、ChatGPTなどの汎用AIツールとの違いは？</summary>
+      <div class="answer">
+        <p>汎用ツールは「テンプレート + 手入力テキスト」でデザイン性の高い資料を作れますが、Park-Pitchの本質は<strong>「6,300点の実在商品データベースと連動したインテリジェントな提案」</strong>です。</p>
+        <p>素材・サイズ・色展開・名入れ方法・価格・納期など商品固有の仕様を正確に反映し、複数商品の比較表や見積もりまで自動生成する点は、汎用ツールでは実現できません。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>Salesforce、HubSpotなどのCRMとの違いは？</summary>
+      <div class="answer">
+        <p>CRMは「案件管理・顧客関係管理」が主目的で、<strong>提案書の中身を自動生成する機能はありません</strong>。</p>
+        <p>Park-Pitchは<strong>「商品知識 × 顧客要件 = 提案書」</strong>という変換エンジンです。将来的にはCRMとのデータ連携（案件情報の自動取り込み等）も視野に入れています。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>なぜ競合がいないのですか？</summary>
+      <div class="answer">
+        <p>「自社の具体的な商品カタログデータ」と「AI提案書生成」を組み合わせた製品は、日本市場でほぼ存在しません。理由は以下の3点です。</p>
+        <ul>
+          <li>商品データの構造化・AIエンリッチメントには<strong>専門的な技術</strong>が必要</li>
+          <li>業界ごとに商品属性が異なるため<strong>ドメイン知識</strong>が不可欠</li>
+          <li>提案書の品質は<strong>プロンプトエンジニアリングの精度</strong>に大きく依存</li>
+        </ul>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>他社が同じものを作った場合、どう対抗しますか？</summary>
+      <div class="answer">
+        <p>2つの「堀（モート）」があります。</p>
+        <ul>
+          <li><strong>堀A「スマート商品登録」</strong>：ユーザーが使うほど商品データが磨かれ（タグ・サマリー・スコアの蓄積）、提案精度が向上する蓄積資産</li>
+          <li><strong>堀B「会社プロフィール」</strong>：自社の理念・強み・体制が全提案書に自動反映されるブランド化された出力</li>
+        </ul>
+        <p>これらはデータの蓄積により<strong>時間とともに参入障壁が高くなります</strong>。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 7. 将来展望・拡張性 ===== -->
+  <section id="s7" class="qa-section">
+    <h2><span class="section-num">7</span>将来展望・拡張性</h2>
+
+    <details open class="qa-item">
+      <summary>今後のロードマップは？</summary>
+      <div class="answer">
+        <p>V2以降の計画は以下の通りです。</p>
+        <ul>
+          <li>提案書テンプレートのカスタマイズ機能</li>
+          <li>チーム共有・権限管理</li>
+          <li>Word / PDF直接エクスポート</li>
+          <li>議事録からの要件自動抽出（音声→テキスト→提案書の一気通貫フロー）</li>
+          <li>CRM連携（案件情報の自動インポート）</li>
+        </ul>
+        <p>まずはMVPの価値検証を完了し、<strong>顧客フィードバックに基づいて優先順位を決定</strong>します。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>ブルーミング中西以外の商品カタログにも対応できますか？</summary>
+      <div class="answer">
+        <p><strong>はい。</strong>アーキテクチャは商品カタログ非依存で設計されています。商品データの構造（名前・ブランド・価格・素材・サイズ・色・タグ）が統一されていれば、どのメーカーのカタログにも対応可能です。</p>
+        <p><strong>複数メーカーの商品を横断的に提案する機能</strong>も技術的に実装可能です。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>他業界への展開は可能ですか？</summary>
+      <div class="answer">
+        <p>現在の「ノベルティ/ギフト業界」のロジックは、他のB2B業界にも横展開可能です。例えば：</p>
+        <ul>
+          <li>OA機器の提案書</li>
+          <li>オフィス家具の提案書</li>
+          <li>食品卸の提案書</li>
+        </ul>
+        <p>商品カタログの構造化とプロンプトの業界特化を行えば、<strong>同じプラットフォームで対応</strong>できます。</p>
+      </div>
+    </details>
+
+    <details open class="qa-item">
+      <summary>大規模利用への対応（スケーラビリティ）は？</summary>
+      <div class="answer">
+        <p>Firebase / Google Cloudの<strong>自動スケーリング基盤</strong>上で稼働しているため、ユーザー数やデータ量の増加に対して自動的にスケールします。</p>
+        <p>Gemini APIも従量課金でスケーラブル。現在の6,300商品から<strong>数万商品への拡張</strong>も、Firestoreのインデクシングとキャッシュ機能により対応可能です。</p>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+  <div class="footer-company">AppTalentHub株式会社</div>
+  <p>本資料は機密情報を含みます。第三者への開示・転載はご遠慮ください。</p>
+  <p>作成日: 2026年3月22日</p>
+</footer>
+
+</body>
+</html>
